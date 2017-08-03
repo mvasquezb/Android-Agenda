@@ -44,14 +44,12 @@ public class EventListActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         toolbar.setTitle(getTitle());
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.add_event);
+        fab.setOnClickListener((view) -> {
+            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                    .setAction("Action", null).show();
             }
-        });
+        );
 
         View recyclerView = findViewById(R.id.event_list);
         assert recyclerView != null;
@@ -92,9 +90,7 @@ public class EventListActivity extends AppCompatActivity {
             holder.mIdView.setText(mValues.get(position).id);
             holder.mContentView.setText(mValues.get(position).content);
 
-            holder.mView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
+            holder.mView.setOnClickListener((view) -> {
                     if (mTwoPane) {
                         Bundle arguments = new Bundle();
                         arguments.putString(EventDetailFragment.ARG_ITEM_ID, holder.mItem.id);
@@ -104,14 +100,14 @@ public class EventListActivity extends AppCompatActivity {
                                 .replace(R.id.event_detail_container, fragment)
                                 .commit();
                     } else {
-                        Context context = v.getContext();
+                        Context context = view.getContext();
                         Intent intent = new Intent(context, EventDetailActivity.class);
                         intent.putExtra(EventDetailFragment.ARG_ITEM_ID, holder.mItem.id);
 
                         context.startActivity(intent);
                     }
                 }
-            });
+            );
         }
 
         @Override
