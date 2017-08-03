@@ -96,13 +96,13 @@ public class EventListActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         if (id == R.id.menu_action_logout) {
-            logoutUser();
+            logoutAction();
             return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
-    private void logoutUser() {
+    private void logoutAction() {
         // Launch LoginActivity with logout flag
         Intent logout = new Intent(this, LoginActivity.class);
         logout.putExtra("logout", true);
