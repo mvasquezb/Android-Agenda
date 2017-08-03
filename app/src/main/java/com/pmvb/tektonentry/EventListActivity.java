@@ -3,6 +3,7 @@ package com.pmvb.tektonentry;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
@@ -34,6 +35,7 @@ import io.fabric.sdk.android.Fabric;
  */
 public class EventListActivity extends AppCompatActivity {
     public static final String TAG = "EventListActivity";
+    public static final int CREATE_EVENT_REQUEST = 1;
 
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet
@@ -62,10 +64,8 @@ public class EventListActivity extends AppCompatActivity {
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.btn_add_event);
         fab.setOnClickListener(view -> {
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show();
-            }
-        );
+            redirectEventCreate();
+        });
 
         View recyclerView = findViewById(R.id.event_list);
         assert recyclerView != null;
@@ -139,6 +139,21 @@ public class EventListActivity extends AppCompatActivity {
         super.onStop();
         if (mAuthListener != null) {
             mAuth.removeAuthStateListener(mAuthListener);
+        }
+    }
+
+    private void redirectEventCreate() {
+        Intent addEvent = new Intent(getApplicationContext(), CreateEventActivity.class);
+        startActivityForResult(addEvent, CREATE_EVENT_REQUEST);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == CREATE_EVENT_REQUEST) {
+            if (resultCode == RESULT_OK) {
+                Parcelable evtData = data.getParcelableExtra("agenda_new_event");
+            }
         }
     }
 
