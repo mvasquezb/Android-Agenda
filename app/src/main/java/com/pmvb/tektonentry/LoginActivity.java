@@ -1,17 +1,21 @@
 package com.pmvb.tektonentry;
 
 import android.app.ProgressDialog;
-import android.app.usage.UsageEvents;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputEditText;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.util.Patterns;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthInvalidUserException;
+import com.google.firebase.auth.FirebaseAuthUserCollisionException;
+import com.google.firebase.auth.FirebaseUser;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -29,25 +33,28 @@ public class LoginActivity extends AppCompatActivity {
     @BindView(R.id.link_signup)
     TextView signupLink;
 
+    private FirebaseAuth mAuth;
+    private ProgressDialog progressDialog;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         ButterKnife.bind(this);
 
+        initFirebaseAuth();
+
         boolean logout = getIntent().getBooleanExtra("logout", false);
         if (logout) {
             logOutUser();
         }
 
-        loginBtn.setOnClickListener((view) -> {
-            login();
-        });
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser != null) {
+            onLoginSuccess();
+        }
 
-//        signupLink.setOnClickListener((view) -> {
-//            // Start signup activity
-//            Intent signup = new Intent(this, SignupActivity)
-//        });
+        loginBtn.setOnClickListener(view -> login());
     }
 
     private void login() {
@@ -59,20 +66,15 @@ public class LoginActivity extends AppCompatActivity {
         loginBtn.setEnabled(false);
 
         // Authentication Progress Dialog
-        final ProgressDialog dialog = new ProgressDialog(
-                this, R.style.AppTheme_Dark_Dialog);
-        dialog.setIndeterminate(true);
-        dialog.setMessage("Authenticating...");
-        dialog.show();
+        showProgressDialog();
 
         // Authentication
+        handleAuth();
+    }
 
-        // Post Handler
-        new android.os.Handler().postDelayed(() -> {
-            // Callback, login by default
-            onLoginSuccess();
-            dialog.dismiss();
-        }, 1500);
+    private void handleAuth() {
+//        registerUser();
+        loginUser(true);
     }
 
     private boolean validate() {
@@ -99,37 +101,119 @@ public class LoginActivity extends AppCompatActivity {
         return valid;
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == REQUEST_SIGNUP) {
-            if (resultCode == RESULT_OK) {
-
-                // TODO: Implement successful signup logic here
-                onLoginSuccess();
-            }
-        }
-    }
-
     public void onLoginSuccess() {
         loginBtn.setEnabled(true);
-        SharedPreferences.Editor prefsEditor = getSharedPreferences(
-                getString(R.string.prefs_file_key), MODE_PRIVATE).edit();
-        prefsEditor.putBoolean(getString(R.string.loggedIn_pref_key), true);
-        prefsEditor.apply();
+        redirectHome();
+    }
+
+    private void redirectHome() {
         Intent success = new Intent(getApplicationContext(), EventListActivity.class);
         startActivity(success);
         finish();
     }
 
+    private void initFirebaseAuth() {
+        mAuth = FirebaseAuth.getInstance();
+    }
+
+    private void registerUser() {
+        String email = emailText.getText().toString();
+        String password = passwordText.getText().toString();
+        registerUser(email, password);
+    }
+
+    private void registerUser(String email, String password) {
+        mAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(
+                this,
+                task -> {
+                    Log.d(TAG, "createUserWithEmail:onComplete:" + task.isSuccessful());
+
+                    // If sign in fails, display a message to the user. If sign in succeeds
+                    // the auth state listener will be notified and logic to handle the
+                    // signed in user can be handled in the listener.
+                    if (!task.isSuccessful()) {
+                        onLoginFailed(task.getException().getMessage());
+                    } else {
+                        onLoginSuccess();
+                    }
+                    hideProgressDialog();
+                });
+    }
+
+    private void loginUser() {
+        loginUser(false);
+    }
+
+    private void loginUser(boolean autoRegister) {
+        String email = emailText.getText().toString();
+        String password = passwordText.getText().toString();
+        loginUser(email, password, autoRegister);
+    }
+
+    private void loginUser(String email, String password, boolean autoRegister) {
+        mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(
+                this,
+                task -> {
+                    if (task.isSuccessful()) {
+                        // Sign in success, update UI with the signed-in user's information
+                        Log.d(TAG, "signInWithEmail:success");
+                        onLoginSuccess();
+                    } else {
+                        // If sign in fails, display a message to the user.
+                        Log.w(TAG, "signInWithEmail:failure", task.getException());
+                        Exception ex = task.getException();
+                        if (ex instanceof FirebaseAuthInvalidUserException) {
+                            registerUser();
+                        } else {
+                            onLoginFailed(ex.getMessage());
+                        }
+                    }
+                    hideProgressDialog();
+                }
+        );
+    }
+
     public void onLoginFailed() {
-        Snackbar.make(findViewById(R.id.input_email), "Login Failed", Snackbar.LENGTH_LONG).show();
+        onLoginFailed(getString(R.string.login_failed));
+    }
+
+    public void onLoginFailed(String message) {
+        Snackbar.make(
+                emailText,
+                message,
+                Snackbar.LENGTH_LONG).show();
         loginBtn.setEnabled(true);
     }
 
     public void logOutUser() {
-        SharedPreferences.Editor prefsEditor = getSharedPreferences(
-                getString(R.string.prefs_file_key), MODE_PRIVATE).edit();
-        prefsEditor.putBoolean(getString(R.string.loggedIn_pref_key), false);
-        prefsEditor.apply();
+        mAuth.signOut();
+    }
+
+    public void showProgressDialog() {
+        if (progressDialog == null) {
+            progressDialog = new ProgressDialog(this, R.style.AppTheme_Dark_Dialog);
+            progressDialog.setMessage("Authenticating...");
+            progressDialog.setIndeterminate(true);
+        }
+
+        progressDialog.show();
+    }
+
+    public void hideProgressDialog() {
+        if (progressDialog != null && progressDialog.isShowing()) {
+            progressDialog.dismiss();
+        }
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        hideProgressDialog();
+    }
+
+    @Override
+    public void onBackPressed() {
+        // Disable going back to EventListActivity
+        moveTaskToBack(true);
     }
 }
