@@ -1,4 +1,6 @@
 <resources>
     <string name="app_name">Agenda</string>
     <string name="title_event_detail">Event Detail</string>
+    <string name="menu_action_logout">Log Out</string>
+    <string name="prefs_file_key">com.pmvb.tektonentry.agendaPrefs</string>
 </resources>
