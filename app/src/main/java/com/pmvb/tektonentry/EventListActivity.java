@@ -60,8 +60,8 @@ public class EventListActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         toolbar.setTitle(getTitle());
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.add_event);
-        fab.setOnClickListener((view) -> {
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.btn_add_event);
+        fab.setOnClickListener(view -> {
             Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                     .setAction("Action", null).show();
             }
