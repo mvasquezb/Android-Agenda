@@ -27,7 +27,9 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.pmvb.tektonentry.EventListActivity" />
         </activity>
-        <activity android:name=".LoginActivity" />
+        <activity
+            android:name=".LoginActivity"
+            android:windowSoftInputMode="stateHidden"/>
         <meta-data
             android:name="io.fabric.ApiKey"
             android:value="76d06d81535359540bf2c88ee218d0ec5672103c"/>

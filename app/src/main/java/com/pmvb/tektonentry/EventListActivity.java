@@ -18,7 +18,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import com.crashlytics.android.Crashlytics;
-import com.pmvb.tektonentry.dummy.DummyContent;
+import com.pmvb.tektonentry.event.EventContent;
+
 import java.util.List;
 import io.fabric.sdk.android.Fabric;
 
@@ -110,15 +111,15 @@ public class EventListActivity extends AppCompatActivity {
     }
 
     private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
-        recyclerView.setAdapter(new SimpleItemRecyclerViewAdapter(DummyContent.ITEMS));
+        recyclerView.setAdapter(new SimpleItemRecyclerViewAdapter(EventContent.ITEMS));
     }
 
     public class SimpleItemRecyclerViewAdapter
             extends RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder> {
 
-        private final List<DummyContent.DummyItem> mValues;
+        private final List<EventContent.EventItem> mValues;
 
-        public SimpleItemRecyclerViewAdapter(List<DummyContent.DummyItem> items) {
+        public SimpleItemRecyclerViewAdapter(List<EventContent.EventItem> items) {
             mValues = items;
         }
 
@@ -164,7 +165,7 @@ public class EventListActivity extends AppCompatActivity {
             public final View mView;
             public final TextView mIdView;
             public final TextView mContentView;
-            public DummyContent.DummyItem mItem;
+            public EventContent.EventItem mItem;
 
             public ViewHolder(View view) {
                 super(view);
