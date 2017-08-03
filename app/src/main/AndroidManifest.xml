@@ -38,7 +38,9 @@
             android:name="io.fabric.ApiKey"
             android:value="76d06d81535359540bf2c88ee218d0ec5672103c" />
 
-        <activity android:name=".CreateEventActivity"></activity>
+        <activity
+            android:name=".CreateEventActivity"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>

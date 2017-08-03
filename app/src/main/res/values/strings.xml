@@ -5,4 +5,5 @@
     <string name="prefs_file_key">com.pmvb.tektonentry.agendaPrefs</string>
     <string name="loggedIn_pref_key">loggedIn</string>
     <string name="login_failed">Login Failed</string>
+    <string name="create_event_title">Create an Event</string>
 </resources>
