@@ -2,7 +2,6 @@ package com.pmvb.tektonentry;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -18,6 +17,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import com.crashlytics.android.Crashlytics;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.pmvb.tektonentry.event.EventContent;
 
 import java.util.List;
@@ -40,24 +41,20 @@ public class EventListActivity extends AppCompatActivity {
      */
     private boolean mTwoPane;
 
+    private FirebaseAuth mAuth;
+    private FirebaseAuth.AuthStateListener mAuthListener;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Fabric.with(this, new Crashlytics());
-
-        Log.d(TAG, "Before loading prefs");
-        SharedPreferences prefs = getSharedPreferences(
-                getString(R.string.prefs_file_key), MODE_PRIVATE);
-        Log.d(TAG, "Loaded prefs");
-        if (!prefs.getBoolean(getString(R.string.loggedIn_pref_key), false)) {
-            Log.d(TAG, "User is not logged in. Redirect to login");
-            Intent login = new Intent(getApplicationContext(), LoginActivity.class);
-            startActivity(login);
-            finish();
-        }
-        Log.d(TAG, "User is logged in. Load event list");
-
         setContentView(R.layout.activity_event_list);
+
+        initFirebaseAuth();
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user != null) {
+//            Snackbar.make(findViewById(R.id.add_event), user.getEmail(), Snackbar.LENGTH_LONG).show();
+        }
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -102,12 +99,47 @@ public class EventListActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    private void requestLogin() {
+        Intent login = new Intent(getApplicationContext(), LoginActivity.class);
+        startActivity(login);
+        finish();
+    }
+
     private void logoutAction() {
         // Launch LoginActivity with logout flag
         Intent logout = new Intent(this, LoginActivity.class);
         logout.putExtra("logout", true);
         startActivity(logout);
         finish();
+    }
+
+    private void initFirebaseAuth() {
+        mAuth = FirebaseAuth.getInstance();
+        mAuthListener = firebaseAuth -> {
+            FirebaseUser user = firebaseAuth.getCurrentUser();
+            if (user != null) {
+                // User is signed in
+                Log.d(TAG, "onAuthStateChanged:signed_in:" + user.getUid());
+            } else {
+                // User is signed out
+                Log.d(TAG, "onAuthStateChanged:signed_out");
+                requestLogin();
+            }
+        };
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        mAuth.addAuthStateListener(mAuthListener);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (mAuthListener != null) {
+            mAuth.removeAuthStateListener(mAuthListener);
+        }
     }
 
     private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
@@ -136,7 +168,7 @@ public class EventListActivity extends AppCompatActivity {
             holder.mIdView.setText(mValues.get(position).id);
             holder.mContentView.setText(mValues.get(position).content);
 
-            holder.mView.setOnClickListener((view) -> {
+            holder.mView.setOnClickListener(view -> {
                     if (mTwoPane) {
                         Bundle arguments = new Bundle();
                         arguments.putString(EventDetailFragment.ARG_ITEM_ID, holder.mItem.id);
@@ -170,8 +202,8 @@ public class EventListActivity extends AppCompatActivity {
             public ViewHolder(View view) {
                 super(view);
                 mView = view;
-                mIdView = (TextView) view.findViewById(R.id.id);
-                mContentView = (TextView) view.findViewById(R.id.content);
+                mIdView = view.findViewById(R.id.id);
+                mContentView = view.findViewById(R.id.content);
             }
 
             @Override
