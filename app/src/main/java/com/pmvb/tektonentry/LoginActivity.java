@@ -8,6 +8,7 @@ import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputEditText;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Patterns;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -34,6 +35,11 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
         ButterKnife.bind(this);
 
+        boolean logout = getIntent().getBooleanExtra("logout", false);
+        if (logout) {
+            logOutUser();
+        }
+
         loginBtn.setOnClickListener((view) -> {
             login();
         });
@@ -46,7 +52,10 @@ public class LoginActivity extends AppCompatActivity {
 
     private void login() {
         // Validation
-
+        if (!validate()) {
+            onLoginFailed();
+            return;
+        }
         loginBtn.setEnabled(false);
 
         // Authentication Progress Dialog
@@ -63,7 +72,31 @@ public class LoginActivity extends AppCompatActivity {
             // Callback, login by default
             onLoginSuccess();
             dialog.dismiss();
-        }, 2000);
+        }, 1500);
+    }
+
+    private boolean validate() {
+        // Basic validation
+        boolean valid = true;
+
+        String email = emailText.getText().toString();
+        String password = passwordText.getText().toString();
+
+        if (email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            emailText.setError("Enter a valid email address");
+            valid = false;
+        } else {
+            emailText.setError(null);
+        }
+
+        if (password.isEmpty() || password.length() < 4 || password.length() > 10) {
+            passwordText.setError("Password must be between 4 and 10 characters");
+            valid = false;
+        } else {
+            passwordText.setError(null);
+        }
+
+        return valid;
     }
 
     @Override
@@ -91,5 +124,12 @@ public class LoginActivity extends AppCompatActivity {
     public void onLoginFailed() {
         Snackbar.make(findViewById(R.id.input_email), "Login Failed", Snackbar.LENGTH_LONG).show();
         loginBtn.setEnabled(true);
+    }
+
+    public void logOutUser() {
+        SharedPreferences.Editor prefsEditor = getSharedPreferences(
+                getString(R.string.prefs_file_key), MODE_PRIVATE).edit();
+        prefsEditor.putBoolean(getString(R.string.loggedIn_pref_key), false);
+        prefsEditor.apply();
     }
 }
