@@ -5,8 +5,10 @@ import android.app.DatePickerDialog;
 import java.util.Calendar;
 
 import android.app.TimePickerDialog;
+import android.content.pm.PackageManager;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputEditText;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -168,7 +170,7 @@ public class CreateEventActivity extends AppCompatActivity implements OnMapReady
     }
 
     private void onSubmitSuccess() {
-        
+
     }
 
     private void onSubmitFailed() {
@@ -204,12 +206,20 @@ public class CreateEventActivity extends AppCompatActivity implements OnMapReady
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         mMap.getUiSettings().setZoomControlsEnabled(true);
 
+        try {
+            mMap.setMyLocationEnabled(true);
+        } catch (SecurityException ex) {
+            ex.printStackTrace();
+            Snackbar.make(
+                    nameField,
+                    "Please enable location services for a better experience.",
+                    Snackbar.LENGTH_LONG).show();
+        }
+
         ScrollView scrollView = (ScrollView) findViewById(R.id.event_form_scroll);
         ((CustomMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.event_location_map))
-                .setOnTouchListener(() -> {
-                    scrollView.requestDisallowInterceptTouchEvent(true);
-                });
+                .setOnTouchListener(() -> scrollView.requestDisallowInterceptTouchEvent(true));
 
         // Add a marker in Sydney and move the camera
         LatLng sydney = new LatLng(-34, 151);
