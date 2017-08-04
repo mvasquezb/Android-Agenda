@@ -15,6 +15,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.widget.ScrollView;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -22,6 +23,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.pmvb.tektonentry.util.CustomMapFragment;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -57,10 +59,13 @@ public class CreateEventActivity extends AppCompatActivity implements OnMapReady
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.event_location_map);
         mapFragment.getMapAsync(this);
+
+        // Display map with equal width and height
         View mapView = mapFragment.getView();
         ViewTreeObserver observer = mapView.getViewTreeObserver();
         observer.addOnGlobalLayoutListener(() -> {
             if (!hasRun) {
+                // Run only once
                 int dim = mapView.getWidth();
                 ViewGroup.LayoutParams params = mapView.getLayoutParams();
                 params.height = dim;
@@ -196,6 +201,15 @@ public class CreateEventActivity extends AppCompatActivity implements OnMapReady
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+        mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+        mMap.getUiSettings().setZoomControlsEnabled(true);
+
+//        ScrollView scrollView = (ScrollView) findViewById(R.id.event_form_scroll);
+//        ((CustomMapFragment) getSupportFragmentManager()
+//                .findFragmentById(R.id.event_location_map))
+//                .setOnTouchListener(() -> {
+//                    scrollView.requestDisallowInterceptTouchEvent(true);
+//                });
 
         // Add a marker in Sydney and move the camera
         LatLng sydney = new LatLng(-34, 151);
