@@ -28,13 +28,15 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.pmvb.tektonentry.util.CustomMapFragment;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class CreateEventActivity extends AppCompatActivity implements OnMapReadyCallback {
+public class CreateEventActivity extends AppCompatActivity
+        implements OnMapReadyCallback, GoogleMap.OnMapLongClickListener {
 
     @BindView(R.id.event_input_name)
     TextInputEditText nameField;
@@ -42,6 +44,8 @@ public class CreateEventActivity extends AppCompatActivity implements OnMapReady
     TextInputEditText dateField;
     @BindView(R.id.event_input_time)
     TextInputEditText timeField;
+
+    private Marker eventLocation;
 
     private GoogleMap mMap;
     private boolean hasRun;
@@ -207,6 +211,7 @@ public class CreateEventActivity extends AppCompatActivity implements OnMapReady
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+        mMap.setOnMapLongClickListener(this);
 
         try {
             mMap.setMyLocationEnabled(true);
@@ -232,12 +237,21 @@ public class CreateEventActivity extends AppCompatActivity implements OnMapReady
                     getSystemService(Context.LOCATION_SERVICE);
             Criteria criteria = new Criteria();
 
-            Location location = locationManager.getLastKnownLocation(locationManager
-                    .getBestProvider(criteria, false));
+            Location location = locationManager.getLastKnownLocation(
+                    locationManager.getBestProvider(criteria, false));
             double latitude = location.getLatitude();
             double longitude = location.getLongitude();
             LatLng myLocation = new LatLng(latitude, longitude);
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 12));
         }
+    }
+
+    @Override
+    public void onMapLongClick(LatLng latLng) {
+        if (eventLocation != null) {
+            eventLocation.remove();
+        }
+        eventLocation = mMap.addMarker(
+                new MarkerOptions().position(latLng).draggable(true));
     }
 }
