@@ -5,6 +5,7 @@ import android.app.DatePickerDialog;
 import java.util.Calendar;
 
 import android.app.TimePickerDialog;
+import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputEditText;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -124,6 +125,41 @@ public class CreateEventActivity extends AppCompatActivity {
     }
 
     private void eventFormSubmit() {
+        if (!validateForm()) {
+            onSubmitFailed();
+            return;
+        }
+        onSubmitSuccess();
+    }
 
+    private void onSubmitSuccess() {
+        
+    }
+
+    private void onSubmitFailed() {
+        Snackbar.make(nameField, "Please correct the errors shown", Snackbar.LENGTH_LONG).show();
+    }
+
+    private boolean validateForm() {
+        boolean valid = true;
+        valid = valid && basicTextFieldValidation(nameField, "Event must have a valid name");
+
+        // If dateField has content, it's valid (comes from DatePicker)
+        valid = basicTextFieldValidation(dateField, "Must select event date") && valid;
+        // Same for timeField
+        valid = basicTextFieldValidation(timeField, "Must select event time") && valid;
+
+        return valid;
+    }
+
+    private boolean basicTextFieldValidation(TextInputEditText field, String errorMsg) {
+        boolean valid = true;
+        if (field.getText().toString().isEmpty()) {
+            field.setError(errorMsg);
+            valid = false;
+        } else {
+            field.setError(null);
+        }
+        return valid;
     }
 }
