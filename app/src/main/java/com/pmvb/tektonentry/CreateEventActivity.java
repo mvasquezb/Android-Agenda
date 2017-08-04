@@ -5,18 +5,38 @@ import android.app.DatePickerDialog;
 import java.util.Calendar;
 
 import android.app.TimePickerDialog;
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationManager;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputEditText;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
+import android.widget.ScrollView;
+
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.pmvb.tektonentry.util.CustomMapFragment;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class CreateEventActivity extends AppCompatActivity {
+public class CreateEventActivity extends AppCompatActivity
+        implements OnMapReadyCallback, GoogleMap.OnMapLongClickListener {
 
     @BindView(R.id.event_input_name)
     TextInputEditText nameField;
@@ -25,11 +45,18 @@ public class CreateEventActivity extends AppCompatActivity {
     @BindView(R.id.event_input_time)
     TextInputEditText timeField;
 
+    private Marker eventLocation;
+
+    private GoogleMap mMap;
+    private boolean hasRun;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_event);
         ButterKnife.bind(this);
+
+        hasRun = false;
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.event_edit_toolbar);
         setSupportActionBar(toolbar);
@@ -38,6 +65,24 @@ public class CreateEventActivity extends AppCompatActivity {
 
         setupDateField();
         setupTimeField();
+
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.event_location_map);
+        mapFragment.getMapAsync(this);
+
+        // Display map with equal width and height
+        View mapView = mapFragment.getView();
+        ViewTreeObserver observer = mapView.getViewTreeObserver();
+        observer.addOnGlobalLayoutListener(() -> {
+            if (!hasRun) {
+                // Run only once
+                int dim = mapView.getWidth();
+                ViewGroup.LayoutParams params = mapView.getLayoutParams();
+                params.height = dim;
+                mapView.setLayoutParams(params);
+                hasRun = true;
+            }
+        });
     }
 
     private void setupTimeField() {
@@ -133,7 +178,7 @@ public class CreateEventActivity extends AppCompatActivity {
     }
 
     private void onSubmitSuccess() {
-        
+
     }
 
     private void onSubmitFailed() {
@@ -161,5 +206,52 @@ public class CreateEventActivity extends AppCompatActivity {
             field.setError(null);
         }
         return valid;
+    }
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        mMap = googleMap;
+        mMap.setOnMapLongClickListener(this);
+
+        try {
+            mMap.setMyLocationEnabled(true);
+        } catch (SecurityException ex) {
+            ex.printStackTrace();
+            Snackbar.make(
+                    nameField,
+                    "Please enable location services for a better experience.",
+                    Snackbar.LENGTH_LONG).show();
+        }
+
+        ScrollView scrollView = (ScrollView) findViewById(R.id.event_form_scroll);
+        ((CustomMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.event_location_map))
+                .setOnTouchListener(() -> scrollView.requestDisallowInterceptTouchEvent(true));
+
+        // Add a marker in Sydney and move the camera
+//        LatLng sydney = new LatLng(-34, 151);
+//        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
+//        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+        if (mMap.isMyLocationEnabled()) {
+            LocationManager locationManager = (LocationManager)
+                    getSystemService(Context.LOCATION_SERVICE);
+            Criteria criteria = new Criteria();
+
+            Location location = locationManager.getLastKnownLocation(
+                    locationManager.getBestProvider(criteria, false));
+            double latitude = location.getLatitude();
+            double longitude = location.getLongitude();
+            LatLng myLocation = new LatLng(latitude, longitude);
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 12));
+        }
+    }
+
+    @Override
+    public void onMapLongClick(LatLng latLng) {
+        if (eventLocation != null) {
+            eventLocation.remove();
+        }
+        eventLocation = mMap.addMarker(
+                new MarkerOptions().position(latLng).draggable(true));
     }
 }
