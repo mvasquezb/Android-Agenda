@@ -44,6 +44,8 @@ public class CreateEventActivity extends AppCompatActivity
     TextInputEditText dateField;
     @BindView(R.id.event_input_time)
     TextInputEditText timeField;
+    @BindView(R.id.event_input_location)
+    TextInputEditText locationField;
 
     private Marker eventLocation;
 
@@ -194,6 +196,14 @@ public class CreateEventActivity extends AppCompatActivity
         // Same for timeField
         valid = basicTextFieldValidation(timeField, "Must select event time") && valid;
 
+        valid = mapHasMarker() && valid;
+
+        return valid;
+    }
+
+    public boolean mapHasMarker() {
+        boolean valid = eventLocation != null;
+        valid = basicTextFieldValidation(locationField, "Must select event location") && valid;
         return valid;
     }
 
@@ -252,6 +262,7 @@ public class CreateEventActivity extends AppCompatActivity
             eventLocation.remove();
         }
         eventLocation = mMap.addMarker(
-                new MarkerOptions().position(latLng).draggable(true));
+                new MarkerOptions().position(latLng));
+        locationField.setText(String.format("%f; %f", latLng.latitude, latLng.longitude));
     }
 }
