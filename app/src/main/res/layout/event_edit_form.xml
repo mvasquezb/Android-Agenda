@@ -60,10 +60,15 @@
             android:text="Location"
             android:textSize="18sp"/>
 
-        <ImageButton
+        <!--<ImageButton-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="500dp"-->
+            <!--android:backgroundTint="@android:color/darker_gray"/>-->
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="500dp"
-            android:backgroundTint="@android:color/darker_gray"/>
-
+            android:layout_height="wrap_content"
+            android:paddingBottom="12dp">
+            <include layout="@layout/activity_maps" />
+        </FrameLayout>
     </LinearLayout>
 </ScrollView>
