@@ -204,12 +204,12 @@ public class CreateEventActivity extends AppCompatActivity implements OnMapReady
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         mMap.getUiSettings().setZoomControlsEnabled(true);
 
-//        ScrollView scrollView = (ScrollView) findViewById(R.id.event_form_scroll);
-//        ((CustomMapFragment) getSupportFragmentManager()
-//                .findFragmentById(R.id.event_location_map))
-//                .setOnTouchListener(() -> {
-//                    scrollView.requestDisallowInterceptTouchEvent(true);
-//                });
+        ScrollView scrollView = (ScrollView) findViewById(R.id.event_form_scroll);
+        ((CustomMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.event_location_map))
+                .setOnTouchListener(() -> {
+                    scrollView.requestDisallowInterceptTouchEvent(true);
+                });
 
         // Add a marker in Sydney and move the camera
         LatLng sydney = new LatLng(-34, 151);
