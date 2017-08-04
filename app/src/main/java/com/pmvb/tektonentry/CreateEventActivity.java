@@ -7,6 +7,8 @@ import java.util.Calendar;
 import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
@@ -22,6 +24,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.ScrollView;
+import android.widget.TextView;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -46,6 +49,8 @@ public class CreateEventActivity extends AppCompatActivity
     TextInputEditText timeField;
     @BindView(R.id.event_input_location)
     TextInputEditText locationField;
+    @BindView(R.id.event_input_location_helper)
+    TextView locationHelper;
 
     private Marker eventLocation;
 
@@ -204,6 +209,11 @@ public class CreateEventActivity extends AppCompatActivity
     public boolean mapHasMarker() {
         boolean valid = eventLocation != null;
         valid = basicTextFieldValidation(locationField, "Must select event location") && valid;
+        if (valid) {
+            locationHelper.setTextColor(ActivityCompat.getColor(this, android.R.color.darker_gray));
+        } else {
+            locationHelper.setTextColor(Color.RED);
+        }
         return valid;
     }
 
@@ -263,6 +273,7 @@ public class CreateEventActivity extends AppCompatActivity
         }
         eventLocation = mMap.addMarker(
                 new MarkerOptions().position(latLng));
+        locationColors = locationField.getTextColors();
         locationField.setText(String.format("%f; %f", latLng.latitude, latLng.longitude));
     }
 }
