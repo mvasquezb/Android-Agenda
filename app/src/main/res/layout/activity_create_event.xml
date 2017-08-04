@@ -22,14 +22,16 @@
 
     </android.support.design.widget.AppBarLayout>
 
-    <!--<FrameLayout android:id="@+id/frameLayout" android:layout_width="match_parent"-->
-        <!--android:layout_height="match_parent"-->
-        <!--app:layout_behavior="@string/appbar_scrolling_view_behavior">-->
+    <FrameLayout
+        android:id="@+id/event_frameLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <!--<include layout="@layout/event_list"-->
-            <!--android:layout_width="match_parent"-->
-            <!--android:layout_height="wrap_content"/>-->
-    <!--</FrameLayout>-->
+        <include layout="@layout/event_edit_form"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+    </FrameLayout>
 
     <!--<android.support.design.widget.FloatingActionButton-->
         <!--android:id="@+id/btn_add_event"-->
