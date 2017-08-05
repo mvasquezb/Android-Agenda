@@ -3,11 +3,11 @@ package com.pmvb.tektonentry;
 import android.app.DatePickerDialog;
 
 import java.util.Calendar;
+import java.util.Date;
 
 import android.app.TimePickerDialog;
 import android.content.Context;
-import android.content.pm.PackageManager;
-import android.content.res.ColorStateList;
+import android.content.Intent;
 import android.graphics.Color;
 import android.location.Criteria;
 import android.location.Location;
@@ -33,6 +33,8 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.pmvb.tektonentry.event.Event;
+import com.pmvb.tektonentry.event.EventParcelable;
 import com.pmvb.tektonentry.util.CustomMapFragment;
 
 import butterknife.BindView;
@@ -185,7 +187,26 @@ public class CreateEventActivity extends AppCompatActivity
     }
 
     private void onSubmitSuccess() {
-
+        String[] tokens = dateField.getText().toString().split("-");
+        Date date = new Date(
+                Integer.parseInt(tokens[0]),
+                Integer.parseInt(tokens[1]),
+                Integer.parseInt(tokens[2])
+        );
+        tokens = timeField.getText().toString().split(":");
+        int selHour = Integer.parseInt(tokens[0]);
+        int selMinute = Integer.parseInt(tokens[1]);
+        EventParcelable data = new EventParcelable(new Event(
+                nameField.getText().toString(),
+                date,
+                selHour,
+                selMinute,
+                eventLocation.getPosition()
+        ));
+        Intent eventList = new Intent(this, EventListActivity.class);
+        eventList.putExtra("agenda_new_event", data);
+        setResult(RESULT_OK, eventList);
+        finish();
     }
 
     private void onSubmitFailed() {
@@ -273,7 +294,6 @@ public class CreateEventActivity extends AppCompatActivity
         }
         eventLocation = mMap.addMarker(
                 new MarkerOptions().position(latLng));
-        locationColors = locationField.getTextColors();
         locationField.setText(String.format("%f; %f", latLng.latitude, latLng.longitude));
     }
 }

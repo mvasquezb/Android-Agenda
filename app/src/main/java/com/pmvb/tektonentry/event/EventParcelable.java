@@ -11,7 +11,7 @@ import java.util.Calendar;
  * Created by pmvb on 17-08-03.
  */
 
-public class EventParcelable implements Parcelable{
+public class EventParcelable implements Parcelable {
     private Event event;
 
     @Override
@@ -27,7 +27,6 @@ public class EventParcelable implements Parcelable{
                 getEvent().getDate().get(Calendar.MONTH) + 1,
                 getEvent().getDate().get(Calendar.DAY_OF_MONTH)
         });
-//        parcel.writeString(String.format("%02d:%02d", hourOfDay, minute));
         parcel.writeIntArray(new int[] {
                 getEvent().getHourOfDay(),
                 getEvent().getMinute()

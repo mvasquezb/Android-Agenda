@@ -9,7 +9,7 @@ import java.util.Date;
  * Created by pmvb on 17-08-04.
  */
 
-class Event {
+public class Event {
     private String name;
     private Calendar date;
     private int hourOfDay;
@@ -80,5 +80,9 @@ class Event {
                 date.get(Calendar.MONTH) + 1,
                 date.get(Calendar.DAY_OF_MONTH)
         );
+    }
+
+    public String getTimeStr() {
+        return String.format("%02d:%02d", hourOfDay, minute);
     }
 }
