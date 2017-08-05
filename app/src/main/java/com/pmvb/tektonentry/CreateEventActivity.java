@@ -74,6 +74,10 @@ public class CreateEventActivity extends AppCompatActivity
         setupDateField();
         setupTimeField();
 
+        mapSetup();
+    }
+
+    private void mapSetup() {
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.event_location_map);
         mapFragment.getMapAsync(this);
