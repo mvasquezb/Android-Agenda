@@ -3,7 +3,6 @@ package com.pmvb.tektonentry;
 import android.app.DatePickerDialog;
 
 import java.util.Calendar;
-import java.util.Date;
 
 import android.app.TimePickerDialog;
 import android.content.Context;
@@ -145,7 +144,7 @@ public class CreateEventActivity extends AppCompatActivity
                 DatePickerDialog datePickerDialog = new DatePickerDialog(
                         this,
                         (picker, year, month, dayOfMonth) -> {
-                            dateField.setText(String.format("%d-%02d-%02d", year, month + 1, dayOfMonth));
+                            dateField.setText(String.format("%04d-%02d-%02d", year, month + 1, dayOfMonth));
                             dateField.clearFocus();
                         },
                         thisYear, thisMonth, thisDay
@@ -188,14 +187,15 @@ public class CreateEventActivity extends AppCompatActivity
 
     private void onSubmitSuccess() {
         String[] tokens = dateField.getText().toString().split("-");
-        Date date = new Date(
-                Integer.parseInt(tokens[0]),
-                Integer.parseInt(tokens[1]),
-                Integer.parseInt(tokens[2])
-        );
+        Calendar date = Calendar.getInstance();
+        date.set(Calendar.YEAR, Integer.parseInt(tokens[0]));
+        date.set(Calendar.MONTH, Integer.parseInt(tokens[1]) - 1);
+        date.set(Calendar.DAY_OF_MONTH, Integer.parseInt(tokens[2]));
+
         tokens = timeField.getText().toString().split(":");
         int selHour = Integer.parseInt(tokens[0]);
         int selMinute = Integer.parseInt(tokens[1]);
+
         EventParcelable data = new EventParcelable(new Event(
                 nameField.getText().toString(),
                 date,
@@ -203,6 +203,7 @@ public class CreateEventActivity extends AppCompatActivity
                 selMinute,
                 eventLocation.getPosition()
         ));
+
         Intent eventList = new Intent(this, EventListActivity.class);
         eventList.putExtra("agenda_new_event", data);
         setResult(RESULT_OK, eventList);
@@ -269,11 +270,8 @@ public class CreateEventActivity extends AppCompatActivity
                 .findFragmentById(R.id.event_location_map))
                 .setOnTouchListener(() -> scrollView.requestDisallowInterceptTouchEvent(true));
 
-        // Add a marker in Sydney and move the camera
-//        LatLng sydney = new LatLng(-34, 151);
-//        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-//        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
         if (mMap.isMyLocationEnabled()) {
+            // Takes long
             LocationManager locationManager = (LocationManager)
                     getSystemService(Context.LOCATION_SERVICE);
             Criteria criteria = new Criteria();
