@@ -3,13 +3,11 @@ package com.pmvb.tektonentry;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -21,8 +19,12 @@ import com.crashlytics.android.Crashlytics;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.pmvb.tektonentry.event.EventContent;
+import com.pmvb.tektonentry.event.EventParcelable;
 
 import java.util.List;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
 import io.fabric.sdk.android.Fabric;
 
 /**
@@ -46,11 +48,17 @@ public class EventListActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
 
+    @BindView(R.id.event_list)
+    RecyclerView eventListView;
+    private SimpleItemAdapter mAdapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Fabric.with(this, new Crashlytics());
         setContentView(R.layout.activity_event_list);
+        ButterKnife.bind(this);
+        mAdapter = new SimpleItemAdapter(EventContent.ITEMS);
 
         initFirebaseAuth();
         FirebaseUser user = mAuth.getCurrentUser();
@@ -67,9 +75,8 @@ public class EventListActivity extends AppCompatActivity {
             redirectEventCreate();
         });
 
-        View recyclerView = findViewById(R.id.event_list);
-        assert recyclerView != null;
-        setupRecyclerView((RecyclerView) recyclerView);
+        assert eventListView != null;
+        setupRecyclerView(eventListView);
 
         if (findViewById(R.id.event_detail_container) != null) {
             // The detail container view will be present only in the
@@ -152,36 +159,45 @@ public class EventListActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == CREATE_EVENT_REQUEST) {
             if (resultCode == RESULT_OK) {
-                Parcelable evtData = data.getParcelableExtra("agenda_new_event");
+                EventParcelable evtData = data.getParcelableExtra("agenda_new_event");
+                EventContent.addItem(new EventContent.EventItem(evtData.getEvent().getName(), evtData.getEvent()));
+                mAdapter.notifyDataSetChanged();
             }
         }
     }
 
-    private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
-        recyclerView.setAdapter(new SimpleItemRecyclerViewAdapter(EventContent.ITEMS));
+    public void setEventListAdapter(SimpleItemAdapter adapter) {
+        mAdapter = adapter;
     }
 
-    public class SimpleItemRecyclerViewAdapter
-            extends RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder> {
+    private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
+        if (mAdapter == null) {
+            setEventListAdapter(new SimpleItemAdapter(EventContent.ITEMS));
+        }
+        recyclerView.setAdapter(mAdapter);
+    }
 
-        private final List<EventContent.EventItem> mValues;
+    public class SimpleItemAdapter
+            extends RecyclerView.Adapter<SimpleItemAdapter.SimpleViewHolder> {
 
-        public SimpleItemRecyclerViewAdapter(List<EventContent.EventItem> items) {
-            mValues = items;
+        private final List<EventContent.EventItem> mItems;
+
+        public SimpleItemAdapter(List<EventContent.EventItem> items) {
+            this.mItems = items;
         }
 
         @Override
-        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        public SimpleViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View view = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.event_list_content, parent, false);
-            return new ViewHolder(view);
+            return new SimpleViewHolder(view);
         }
 
         @Override
-        public void onBindViewHolder(final ViewHolder holder, int position) {
-            holder.mItem = mValues.get(position);
-            holder.mIdView.setText(mValues.get(position).id);
-            holder.mContentView.setText(mValues.get(position).content);
+        public void onBindViewHolder(final SimpleViewHolder holder, int position) {
+            holder.mItem = mItems.get(position);
+            holder.mNameView.setText(mItems.get(position).event.getName());
+            holder.mDateView.setText(mItems.get(position).event.getDateStr() + ' ' + mItems.get(position).event.getTimeStr());
 
             holder.mView.setOnClickListener(view -> {
                     if (mTwoPane) {
@@ -205,25 +221,25 @@ public class EventListActivity extends AppCompatActivity {
 
         @Override
         public int getItemCount() {
-            return mValues.size();
+            return mItems.size();
         }
 
-        public class ViewHolder extends RecyclerView.ViewHolder {
+        public class SimpleViewHolder extends RecyclerView.ViewHolder {
             public final View mView;
-            public final TextView mIdView;
-            public final TextView mContentView;
+            public final TextView mNameView;
+            public final TextView mDateView;
             public EventContent.EventItem mItem;
 
-            public ViewHolder(View view) {
+            public SimpleViewHolder(View view) {
                 super(view);
                 mView = view;
-                mIdView = view.findViewById(R.id.id);
-                mContentView = view.findViewById(R.id.content);
+                mNameView = view.findViewById(R.id.event_item_name);
+                mDateView = view.findViewById(R.id.event_item_date);
             }
 
             @Override
             public String toString() {
-                return super.toString() + " '" + mContentView.getText() + "'";
+                return super.toString() + " '" + mDateView.getText() + "'";
             }
         }
     }

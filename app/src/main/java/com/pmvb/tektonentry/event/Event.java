@@ -75,7 +75,7 @@ public class Event {
 
     public String getDateStr() {
         return String.format(
-                "%d-%02d-%02d",
+                "%04d-%02d-%02d",
                 date.get(Calendar.YEAR),
                 date.get(Calendar.MONTH) + 1,
                 date.get(Calendar.DAY_OF_MONTH)
