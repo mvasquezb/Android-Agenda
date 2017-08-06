@@ -1,9 +1,10 @@
-package com.pmvb.tektonentry.event;
+package com.pmvb.tektonentry.util;
 
 import android.os.Parcel;
 import android.os.Parcelable;
 
 import com.google.android.gms.maps.model.LatLng;
+import com.pmvb.tektonentry.models.Event;
 
 import java.util.Calendar;
 

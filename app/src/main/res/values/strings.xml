@@ -6,4 +6,6 @@
     <string name="loggedIn_pref_key">loggedIn</string>
     <string name="login_failed">Login Failed</string>
     <string name="create_event_title">Create an Event</string>
+    <string name="event_submit_error">Error registering event. Please try again.</string>
+    <string name="event_submit_success">Event registered successfully!</string>
 </resources>
