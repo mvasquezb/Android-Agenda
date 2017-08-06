@@ -30,6 +30,8 @@ import com.pmvb.tektonentry.db.EventListManager;
 import com.pmvb.tektonentry.models.Event;
 import com.pmvb.tektonentry.util.CustomMapFragment;
 
+import java.util.List;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
@@ -178,16 +180,34 @@ public class EventDetailFragment extends Fragment
 
         if (mMap.isMyLocationEnabled()) {
             // Takes long
-            LocationManager locationManager = (LocationManager)
-                    getActivity().getSystemService(Context.LOCATION_SERVICE);
-            Criteria criteria = new Criteria();
+            Location location = getLastKnownLocation();
 
-            Location location = locationManager.getLastKnownLocation(
-                    locationManager.getBestProvider(criteria, false));
-            double latitude = location.getLatitude();
-            double longitude = location.getLongitude();
-            LatLng myLocation = new LatLng(latitude, longitude);
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 12));
+            if (location != null) {
+                double latitude = location.getLatitude();
+                double longitude = location.getLongitude();
+                LatLng myLocation = new LatLng(latitude, longitude);
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 14));
+            } else {
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mItem.getLocation(), 14));
+            }
         }
+    }
+
+    private Location getLastKnownLocation() {
+        LocationManager locationManager = (LocationManager)getActivity().getSystemService(
+                Context.LOCATION_SERVICE);
+        List<String> providers = locationManager.getProviders(true);
+        Location bestLocation = null;
+        for (String provider : providers) {
+            Location l = locationManager.getLastKnownLocation(provider);
+            if (l == null) {
+                continue;
+            }
+            if (bestLocation == null || l.getAccuracy() < bestLocation.getAccuracy()) {
+                // Found best last known location: %s", l);
+                bestLocation = l;
+            }
+        }
+        return bestLocation;
     }
 }

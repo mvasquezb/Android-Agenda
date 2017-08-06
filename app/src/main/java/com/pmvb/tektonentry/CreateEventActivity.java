@@ -3,6 +3,7 @@ package com.pmvb.tektonentry;
 import android.app.DatePickerDialog;
 
 import java.util.Calendar;
+import java.util.List;
 
 import android.app.TimePickerDialog;
 import android.content.Context;
@@ -289,10 +290,12 @@ public class CreateEventActivity extends AppCompatActivity
 
             Location location = locationManager.getLastKnownLocation(
                     locationManager.getBestProvider(criteria, false));
-            double latitude = location.getLatitude();
-            double longitude = location.getLongitude();
-            LatLng myLocation = new LatLng(latitude, longitude);
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 12));
+            if (location != null) {
+                double latitude = location.getLatitude();
+                double longitude = location.getLongitude();
+                LatLng myLocation = new LatLng(latitude, longitude);
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 14));
+            }
         }
     }
 
@@ -304,5 +307,23 @@ public class CreateEventActivity extends AppCompatActivity
         eventLocation = mMap.addMarker(
                 new MarkerOptions().position(latLng));
         locationField.setText(String.format("%f; %f", latLng.latitude, latLng.longitude));
+    }
+
+    private Location getLastKnownLocation() {
+        LocationManager locationManager = (LocationManager) getSystemService(
+                Context.LOCATION_SERVICE);
+        List<String> providers = locationManager.getProviders(true);
+        Location bestLocation = null;
+        for (String provider : providers) {
+            Location l = locationManager.getLastKnownLocation(provider);
+            if (l == null) {
+                continue;
+            }
+            if (bestLocation == null || l.getAccuracy() < bestLocation.getAccuracy()) {
+                // Found best last known location: %s", l);
+                bestLocation = l;
+            }
+        }
+        return bestLocation;
     }
 }
