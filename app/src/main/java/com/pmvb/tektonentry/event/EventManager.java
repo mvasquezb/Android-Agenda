@@ -47,18 +47,20 @@ public class EventManager {
         return mDatabase.child(endpoint);
     }
 
-    public String cleanResourceName(String resName) {
+    public static String cleanResourceName(String resName) {
         return resName.replace("/", "");
     }
 
-    public String getEndpoint(String... values) {
+    public static String getEndpoint(String... values) {
         StringBuilder builder = new StringBuilder();
         if (values.length == 0) {
             builder.append('/');
         }
         for (String resName: values) {
-            builder.append('/');
-            builder.append(cleanResourceName(resName));
+            if (!resName.replaceAll("\\s", "").isEmpty()) {
+                builder.append('/');
+                builder.append(cleanResourceName(resName));
+            }
         }
         return builder.toString();
     }
@@ -67,11 +69,23 @@ public class EventManager {
         return mDatabase.child(mResName).addValueEventListener(listener);
     }
 
-    public void removeValueEventListener(ValueEventListener listener) {
+    public void removeEventListener(ValueEventListener listener) {
         mDatabase.child(mResName).removeEventListener(listener);
     }
 
     public void addListenerForSingleValueEvent(ValueEventListener listener) {
         mDatabase.child(mResName).addListenerForSingleValueEvent(listener);
+    }
+
+    public static DatabaseReference resolveEndpoint(DatabaseReference ref, String endpoint) {
+        String[] resources = endpoint.split("/");
+        return resolveEndpoint(ref, resources);
+    }
+
+    public static DatabaseReference resolveEndpoint(DatabaseReference ref, String... resources) {
+        for (String res : resources) {
+            ref = ref.child(res);
+        }
+        return ref;
     }
 }
