@@ -15,7 +15,7 @@ import android.view.MenuItem;
  * item details are presented side-by-side with a list of items
  * in a {@link EventListActivity}.
  */
-public class EventDetailActivity extends AppCompatActivity {
+public class EventDetailActivity extends LoginProtectedActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
