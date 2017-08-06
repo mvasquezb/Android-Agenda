@@ -91,6 +91,14 @@ public class Event {
         this.location = location;
     }
 
+    public double getLatitude() {
+        return location.latitude;
+    }
+
+    public double getLongitude() {
+        return location.longitude;
+    }
+
     public void setLatitude(double latitude) {
         if (location == null) {
             location = new LatLng(0, 0);
