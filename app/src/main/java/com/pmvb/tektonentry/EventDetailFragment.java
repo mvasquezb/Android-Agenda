@@ -8,6 +8,8 @@ import android.content.Intent;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -39,6 +41,10 @@ import com.pmvb.tektonentry.db.EventListManager;
 import com.pmvb.tektonentry.db.Manager;
 import com.pmvb.tektonentry.models.Event;
 import com.pmvb.tektonentry.util.CustomMapFragment;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -243,6 +249,10 @@ public class EventDetailFragment extends Fragment
                 .setSmallIcon(android.R.drawable.ic_dialog_alert)
                 .setContentTitle("A event you're subscribed to is about to start")
                 .setContentText(mItem.getName() + " starts in one hour");
+        // Get notification sound
+        Uri soundUri= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+        builder.setSound(soundUri);
+
         Intent intent = new Intent(getContext(), getActivity().getClass());
         intent.putExtra(ARG_EVENT_ID, getArguments().getString(ARG_EVENT_ID));
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(getContext());
@@ -254,7 +264,13 @@ public class EventDetailFragment extends Fragment
         builder.setContentIntent(pendingIntent);
         NotificationManager notificationManager = (NotificationManager) getActivity()
                 .getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.notify(1, builder.build());
+        notificationManager.notify(createNotificationId(), builder.build());
+    }
+
+    private int createNotificationId() {
+        Date now = new Date();
+        int id = Integer.parseInt(new SimpleDateFormat("ddHHmmssSS",  Locale.US).format(now));
+        return id;
     }
 
     /**
