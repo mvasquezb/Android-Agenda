@@ -5,10 +5,13 @@ import android.content.Context;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
+import android.support.annotation.Nullable;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,24 +19,29 @@ import android.view.ViewTreeObserver;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import com.google.android.gms.common.api.BooleanResult;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.pmvb.tektonentry.db.EventListManager;
+import com.pmvb.tektonentry.db.Manager;
 import com.pmvb.tektonentry.models.Event;
 import com.pmvb.tektonentry.util.CustomMapFragment;
 
 import java.util.List;
+import java.util.Objects;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.Optional;
 
 /**
  * A fragment representing a single EventListManager detail screen.
@@ -59,6 +67,7 @@ public class EventDetailFragment extends Fragment
      */
     private Event mItem;
     private DatabaseReference mEventRef;
+    private DatabaseReference mNotificationRef;
 
     private CollapsingToolbarLayout mAppBarLayout;
     private View mRootView;
@@ -68,6 +77,11 @@ public class EventDetailFragment extends Fragment
     TextView dateText;
     @BindView(R.id.event_detail_time)
     TextView timeText;
+
+    // Might be null if fragment is loaded without EventDetailActivity (until this is checked)
+    FloatingActionButton notificationToggle;
+    private boolean mNotify;
+    private ValueEventListener mNotificationListener;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -79,12 +93,21 @@ public class EventDetailFragment extends Fragment
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        mNotify = false;
         if (getArguments().containsKey(ARG_EVENT_ID)) {
+            DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference();
+            String eventId = getArguments().getString(ARG_EVENT_ID);
             mEventRef = EventListManager.resolveEndpoint(
-                    FirebaseDatabase.getInstance().getReference(),
+                    dbRef,
                     "events",
-                    getArguments().getString(ARG_EVENT_ID)
+                    eventId
+            );
+            mNotificationRef = Manager.resolveEndpoint(
+                    dbRef,
+                    "user-events",
+                    FirebaseAuth.getInstance().getCurrentUser().getUid(),
+                    eventId,
+                    "notify"
             );
 
             Activity activity = getActivity();
@@ -97,6 +120,10 @@ public class EventDetailFragment extends Fragment
                              Bundle savedInstanceState) {
         mRootView = inflater.inflate(R.layout.event_detail, container, false);
         ButterKnife.bind(this, mRootView);
+        notificationToggle = getActivity().findViewById(R.id.btn_toggle_notification);
+        if (notificationToggle != null) {
+            notificationToggle.setOnClickListener(view -> toggleNotification());
+        }
 
         return mRootView;
     }
@@ -129,6 +156,30 @@ public class EventDetailFragment extends Fragment
         };
         mEventRef.addValueEventListener(eventLoadListener);
         mEventLoadListener = eventLoadListener;
+
+        ValueEventListener notificationListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Object value = dataSnapshot.getValue();
+                boolean notify;
+                if (value == null) {
+                    notify = false;
+                } else {
+                    notify = (Boolean) value;
+                }
+                if (mItem != null && notificationToggle != null) {
+                    toggleNotificationIcon(notify);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Snackbar.make(
+                        dateText, "Failed to load subscription data.", Snackbar.LENGTH_LONG).show();
+            }
+        };
+        mNotificationRef.addValueEventListener(notificationListener);
+        mNotificationListener = notificationListener;
     }
 
     @Override
@@ -136,6 +187,42 @@ public class EventDetailFragment extends Fragment
         super.onStop();
         if (mEventLoadListener != null) {
             mEventRef.removeEventListener(mEventLoadListener);
+        }
+        if (mNotificationListener != null) {
+            mNotificationRef.removeEventListener(mNotificationListener);
+        }
+    }
+
+    private void toggleNotification() {
+        toggleNotification(!mNotify);
+    }
+
+    private void toggleNotification(boolean notify) {
+        toggleNotification(notify, true);
+    }
+
+    private void toggleNotification(boolean notify, boolean send) {
+        toggleNotificationIcon(notify);
+        if (send && mNotify != notify) {
+            mNotificationRef.setValue(notify);
+        }
+        mNotify = notify;
+    }
+
+    private void toggleNotificationIcon(boolean notify) {
+        if (notificationToggle == null) {
+            return;
+        }
+        if (notify && !mNotify) {
+            notificationToggle.setImageDrawable(ContextCompat.getDrawable(
+                    getContext(),
+                    R.drawable.ic_notifications_active_white_24dp)
+            );
+        } else if (!notify && mNotify) {
+            notificationToggle.setImageDrawable(ContextCompat.getDrawable(
+                    getContext(),
+                    R.drawable.ic_notifications_none_white_24dp)
+            );
         }
     }
 
