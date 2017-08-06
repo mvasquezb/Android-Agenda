@@ -5,7 +5,6 @@ import android.content.Context;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
-import android.support.annotation.Nullable;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -19,7 +18,6 @@ import android.view.ViewTreeObserver;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
-import com.google.android.gms.common.api.BooleanResult;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -36,15 +34,11 @@ import com.pmvb.tektonentry.db.Manager;
 import com.pmvb.tektonentry.models.Event;
 import com.pmvb.tektonentry.util.CustomMapFragment;
 
-import java.util.List;
-import java.util.Objects;
-
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.Optional;
 
 /**
- * A fragment representing a single EventListManager detail screen.
+ * A fragment representing a single Event detail screen.
  * This fragment is either contained in a {@link EventListActivity}
  * in two-pane mode (on tablets) or a {@link EventDetailActivity}
  * on handsets.
@@ -273,28 +267,18 @@ public class EventDetailFragment extends Fragment
                 double latitude = location.getLatitude();
                 double longitude = location.getLongitude();
                 LatLng myLocation = new LatLng(latitude, longitude);
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 14));
-            } else {
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mItem.getLocation(), 14));
+//                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 14));
             }
         }
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mItem.getLocation(), 14));
     }
 
     private Location getLastKnownLocation() {
-        LocationManager locationManager = (LocationManager)getActivity().getSystemService(
-                Context.LOCATION_SERVICE);
-        List<String> providers = locationManager.getProviders(true);
-        Location bestLocation = null;
-        for (String provider : providers) {
-            Location l = locationManager.getLastKnownLocation(provider);
-            if (l == null) {
-                continue;
-            }
-            if (bestLocation == null || l.getAccuracy() < bestLocation.getAccuracy()) {
-                // Found best last known location: %s", l);
-                bestLocation = l;
-            }
-        }
-        return bestLocation;
+        LocationManager locationManager = (LocationManager)
+                getActivity().getSystemService(Context.LOCATION_SERVICE);
+        Criteria criteria = new Criteria();
+        Location location = locationManager.getLastKnownLocation(
+                locationManager.getBestProvider(criteria, false));
+        return location;
     }
 }
