@@ -33,8 +33,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.database.FirebaseDatabase;
-import com.pmvb.tektonentry.event.Event;
-import com.pmvb.tektonentry.event.EventManager;
+import com.pmvb.tektonentry.db.EventListManager;
+import com.pmvb.tektonentry.models.Event;
 import com.pmvb.tektonentry.util.CustomMapFragment;
 
 import butterknife.BindView;
@@ -58,14 +58,14 @@ public class CreateEventActivity extends AppCompatActivity
 
     private GoogleMap mMap;
     private boolean hasRun;
-    private EventManager mEventManager;
+    private EventListManager mEventManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_event);
         ButterKnife.bind(this);
-        mEventManager = new EventManager(
+        mEventManager = new EventListManager(
                 FirebaseDatabase.getInstance().getReference(),
                 "events"
         );

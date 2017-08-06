@@ -5,7 +5,7 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.pmvb.tektonentry.R;
-import com.pmvb.tektonentry.event.Event;
+import com.pmvb.tektonentry.models.Event;
 
 /**
  * Created by pmvb on 17-08-05.

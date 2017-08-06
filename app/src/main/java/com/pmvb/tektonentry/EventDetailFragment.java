@@ -5,11 +5,9 @@ import android.content.Context;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
-import android.support.annotation.Nullable;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -28,15 +26,15 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.pmvb.tektonentry.event.Event;
-import com.pmvb.tektonentry.event.EventManager;
+import com.pmvb.tektonentry.db.EventListManager;
+import com.pmvb.tektonentry.models.Event;
 import com.pmvb.tektonentry.util.CustomMapFragment;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
 /**
- * A fragment representing a single EventManager detail screen.
+ * A fragment representing a single EventListManager detail screen.
  * This fragment is either contained in a {@link EventListActivity}
  * in two-pane mode (on tablets) or a {@link EventDetailActivity}
  * on handsets.
@@ -81,7 +79,7 @@ public class EventDetailFragment extends Fragment
         super.onCreate(savedInstanceState);
 
         if (getArguments().containsKey(ARG_EVENT_ID)) {
-            mEventRef = EventManager.resolveEndpoint(
+            mEventRef = EventListManager.resolveEndpoint(
                     FirebaseDatabase.getInstance().getReference(),
                     "events",
                     getArguments().getString(ARG_EVENT_ID)

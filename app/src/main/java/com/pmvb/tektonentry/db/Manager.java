@@ -1,50 +1,37 @@
-package com.pmvb.tektonentry.event;
-
+package com.pmvb.tektonentry.db;
 
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
-import java.util.HashMap;
-import java.util.Map;
+/**
+ * Created by pmvb on 17-08-05.
+ */
 
-public class EventManager {
+public class Manager {
     // Instance fields
-    private DatabaseReference mDatabase;
-    private String mResName;
+    protected DatabaseReference mDatabase;
+    protected String mResName;
 
-    public EventManager(String endpoint) {
+    public Manager(String endpoint) {
         this(FirebaseDatabase.getInstance().getReference(), endpoint);
     }
 
-    public EventManager(DatabaseReference dbRef, String resName) {
+    public Manager(DatabaseReference dbRef, String resName) {
         mResName = cleanResourceName(resName);
         mDatabase = dbRef;
     }
 
-    public String add(Event item) {
-        // Save new event
-        String key = mDatabase.child(mResName).push().getKey();
-        Map<String, Object> evtValues = item.toMap();
-
-        Map<String, Object> updates = new HashMap<>();
-        updates.put(getEndpoint(mResName, key), evtValues);
-        mDatabase.updateChildren(updates);
-
-        return key;
+    public DatabaseReference getRoot() {
+        return mDatabase;
     }
 
-    public Query getQuery() {
-        return mDatabase.child(mResName);
+    public DatabaseReference getQuery() {
+        return resolveEndpoint(mDatabase, mResName);
     }
 
     public String getResourceName() {
         return mResName;
-    }
-
-    public DatabaseReference get(String endpoint) {
-        return mDatabase.child(endpoint);
     }
 
     public static String cleanResourceName(String resName) {

@@ -20,8 +20,8 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
-import com.pmvb.tektonentry.event.Event;
-import com.pmvb.tektonentry.event.EventManager;
+import com.pmvb.tektonentry.db.EventListManager;
+import com.pmvb.tektonentry.models.Event;
 import com.pmvb.tektonentry.viewholder.EventViewHolder;
 
 
@@ -49,7 +49,7 @@ public class EventListActivity extends AppCompatActivity {
 
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
-    private EventManager mEventManager;
+    private EventListManager mEventManager;
 
     @BindView(R.id.event_list)
     RecyclerView eventListView;
@@ -61,7 +61,7 @@ public class EventListActivity extends AppCompatActivity {
         Fabric.with(this, new Crashlytics());
         setContentView(R.layout.activity_event_list);
         ButterKnife.bind(this);
-//        mAdapter = new SimpleItemAdapter(EventManager.ITEMS);
+//        mAdapter = new SimpleItemAdapter(EventListManager.ITEMS);
 
         initFirebaseAuth();
         FirebaseUser user = mAuth.getCurrentUser();
@@ -69,7 +69,7 @@ public class EventListActivity extends AppCompatActivity {
 //            Snackbar.make(findViewById(R.id.add_event), user.getEmail(), Snackbar.LENGTH_LONG).show();
         }
 
-        mEventManager = new EventManager(
+        mEventManager = new EventListManager(
                 FirebaseDatabase.getInstance().getReference(),
                 "events"
         );
