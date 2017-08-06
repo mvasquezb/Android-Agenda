@@ -5,12 +5,11 @@ import android.content.Context;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
+import android.provider.ContactsContract;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
-import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,14 +20,15 @@ import android.widget.TextView;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.pmvb.tektonentry.event.EventContent;
+import com.google.firebase.database.DatabaseReference;
+import com.pmvb.tektonentry.event.Event;
+import com.pmvb.tektonentry.event.EventManager;
 import com.pmvb.tektonentry.util.CustomMapFragment;
 
 /**
- * A fragment representing a single EventContent detail screen.
+ * A fragment representing a single EventManager detail screen.
  * This fragment is either contained in a {@link EventListActivity}
  * in two-pane mode (on tablets) or a {@link EventDetailActivity}
  * on handsets.
@@ -49,7 +49,8 @@ public class EventDetailFragment extends Fragment
     /**
      * The content this fragment is presenting.
      */
-    private EventContent.EventItem mItem;
+    private Event mItem;
+    private DatabaseReference mEventRef;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -66,12 +67,12 @@ public class EventDetailFragment extends Fragment
             // Load the dummy content specified by the fragment
             // arguments. In a real-world scenario, use a Loader
             // to load content from a content provider.
-            mItem = EventContent.ITEM_MAP.get(getArguments().getString(ARG_ITEM_ID));
+//            mItem = new EventManager("events").get(getArguments().getString(ARG_ITEM_ID));
 
             Activity activity = getActivity();
             CollapsingToolbarLayout appBarLayout = activity.findViewById(R.id.toolbar_layout);
             if (appBarLayout != null) {
-                appBarLayout.setTitle(mItem.event.getName());
+                appBarLayout.setTitle(mItem.getName());
             }
         }
     }
@@ -83,10 +84,10 @@ public class EventDetailFragment extends Fragment
 
         if (mItem != null) {
             TextView dateText = rootView.findViewById(R.id.event_detail_date);
-            dateText.setText(mItem.event.getDateStr());
+            dateText.setText(mItem.getDateStr());
 
             TextView timeText = rootView.findViewById(R.id.event_detail_time);
-            timeText.setText(mItem.event.getTimeStr());
+            timeText.setText(mItem.getTimeStr());
 
             mapSetup();
         }
@@ -122,7 +123,7 @@ public class EventDetailFragment extends Fragment
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        mMap.addMarker(new MarkerOptions().position(mItem.event.getLocation()));
+        mMap.addMarker(new MarkerOptions().position(mItem.getLocation()));
 
         try {
             mMap.setMyLocationEnabled(true);

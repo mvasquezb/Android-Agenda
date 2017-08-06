@@ -32,7 +32,10 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.analytics.FirebaseAnalytics;
+import com.google.firebase.database.FirebaseDatabase;
 import com.pmvb.tektonentry.event.Event;
+import com.pmvb.tektonentry.event.EventManager;
 import com.pmvb.tektonentry.event.EventParcelable;
 import com.pmvb.tektonentry.util.CustomMapFragment;
 
@@ -57,12 +60,17 @@ public class CreateEventActivity extends AppCompatActivity
 
     private GoogleMap mMap;
     private boolean hasRun;
+    private EventManager mEventManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_event);
         ButterKnife.bind(this);
+        mEventManager = new EventManager(
+                FirebaseDatabase.getInstance().getReference(),
+                "events"
+        );
 
         hasRun = false;
 
@@ -200,16 +208,17 @@ public class CreateEventActivity extends AppCompatActivity
         int selHour = Integer.parseInt(tokens[0]);
         int selMinute = Integer.parseInt(tokens[1]);
 
-        EventParcelable data = new EventParcelable(new Event(
+        Event evt = new Event(
                 nameField.getText().toString(),
                 date,
                 selHour,
                 selMinute,
                 eventLocation.getPosition()
-        ));
+        );
+        String key = mEventManager.add(evt);
 
         Intent eventList = new Intent(this, EventListActivity.class);
-        eventList.putExtra("agenda_new_event", data);
+        eventList.putExtra("agenda_new_event", key);
         setResult(RESULT_OK, eventList);
         finish();
     }

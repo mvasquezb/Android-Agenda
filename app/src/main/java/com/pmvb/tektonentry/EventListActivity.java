@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -14,12 +15,18 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
+
 import com.crashlytics.android.Crashlytics;
+import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.pmvb.tektonentry.event.EventContent;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.pmvb.tektonentry.event.Event;
+import com.pmvb.tektonentry.event.EventManager;
 import com.pmvb.tektonentry.event.EventParcelable;
+import com.pmvb.tektonentry.viewholder.EventViewHolder;
 
 import java.util.List;
 
@@ -47,10 +54,11 @@ public class EventListActivity extends AppCompatActivity {
 
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
+    private EventManager mEventManager;
 
     @BindView(R.id.event_list)
     RecyclerView eventListView;
-    private SimpleItemAdapter mAdapter;
+    private FirebaseEventAdapter mAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,13 +66,18 @@ public class EventListActivity extends AppCompatActivity {
         Fabric.with(this, new Crashlytics());
         setContentView(R.layout.activity_event_list);
         ButterKnife.bind(this);
-        mAdapter = new SimpleItemAdapter(EventContent.ITEMS);
+//        mAdapter = new SimpleItemAdapter(EventManager.ITEMS);
 
         initFirebaseAuth();
         FirebaseUser user = mAuth.getCurrentUser();
         if (user != null) {
 //            Snackbar.make(findViewById(R.id.add_event), user.getEmail(), Snackbar.LENGTH_LONG).show();
         }
+
+        mEventManager = new EventManager(
+                FirebaseDatabase.getInstance().getReference(),
+                "events"
+        );
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -159,88 +172,104 @@ public class EventListActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == CREATE_EVENT_REQUEST) {
             if (resultCode == RESULT_OK) {
-                EventParcelable evtData = data.getParcelableExtra("agenda_new_event");
-                EventContent.addItem(new EventContent.EventItem(evtData.getEvent().getName(), evtData.getEvent()));
-                mAdapter.notifyDataSetChanged();
+                Snackbar.make(findViewById(R.id.btn_add_event), mEventManager.getEndpoint(mEventManager.getResourceName(), data.getStringExtra("agenda_new_event")), Snackbar.LENGTH_LONG).show();
+                mEventManager.updateDB();
             }
         }
     }
 
-    public void setEventListAdapter(SimpleItemAdapter adapter) {
-        mAdapter = adapter;
-    }
+//    public void setEventListAdapter(SimpleItemAdapter adapter) {
+//        mAdapter = adapter;
+//    }
+
+//    private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
+//        if (mAdapter == null) {
+//            setEventListAdapter(new SimpleItemAdapter(EventManager.ITEMS));
+//        }
+//        recyclerView.setAdapter(mAdapter);
+//    }
 
     private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
-        if (mAdapter == null) {
-            setEventListAdapter(new SimpleItemAdapter(EventContent.ITEMS));
-        }
+        mAdapter = new FirebaseEventAdapter(
+                Event.class,
+                R.layout.event_list_content,
+                EventViewHolder.class,
+                mEventManager.getQuery()
+        );
         recyclerView.setAdapter(mAdapter);
     }
 
-    public class SimpleItemAdapter
-            extends RecyclerView.Adapter<SimpleItemAdapter.SimpleViewHolder> {
+//    public class SimpleItemAdapter
+//            extends RecyclerView.Adapter<EventViewHolder> {
+//
+//        private final List<EventDBMapper> mItems;
+//
+//        public SimpleItemAdapter(List<EventDBMapper> items) {
+//            this.mItems = items;
+//        }
+//
+//        @Override
+//        public EventViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+//            View view = LayoutInflater.from(parent.getContext())
+//                    .inflate(R.layout.event_list_content, parent, false);
+//            return new EventViewHolder(view);
+//        }
+//
+//        @Override
+//        public void onBindViewHolder(final EventViewHolder holder, int position) {
+//            EventDBMapper item = mItems.get(position);
+//            holder.bindToEvent(item.getEvent());
+//
+//            holder.mView.setOnClickListener(EventListActivity.this);
+//        }
+//
+//        @Override
+//        public int getItemCount() {
+//            return mItems.size();
+//        }
+//    }
 
-        private final List<EventContent.EventItem> mItems;
+    public class FirebaseEventAdapter extends FirebaseRecyclerAdapter<Event, EventViewHolder> {
 
-        public SimpleItemAdapter(List<EventContent.EventItem> items) {
-            this.mItems = items;
+        /**
+         * @param modelClass      Firebase will marshall the data at a location into
+         *                        an instance of a class that you provide
+         * @param modelLayout     This is the layout used to represent a single item in the list.
+         *                        You will be responsible for populating an instance of the corresponding
+         *                        view with the data from an instance of modelClass.
+         * @param viewHolderClass The class that hold references to all sub-views in an instance modelLayout.
+         * @param ref             The Firebase location to watch for data changes. Can also be a slice of a location,
+         *                        using some combination of {@code limit()}, {@code startAt()}, and {@code endAt()}.
+         */
+        public FirebaseEventAdapter(Class<Event> modelClass, int modelLayout, Class<EventViewHolder> viewHolderClass, Query ref) {
+            super(modelClass, modelLayout, viewHolderClass, ref);
         }
 
         @Override
-        public SimpleViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View view = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.event_list_content, parent, false);
-            return new SimpleViewHolder(view);
-        }
+        protected void populateViewHolder(EventViewHolder viewHolder, Event model, int position) {
+            DatabaseReference eventRef = getRef(position);
+            String key = eventRef.getKey();
 
-        @Override
-        public void onBindViewHolder(final SimpleViewHolder holder, int position) {
-            holder.mItem = mItems.get(position);
-            holder.mNameView.setText(mItems.get(position).event.getName());
-            holder.mDateView.setText(mItems.get(position).event.getDateStr() + ' ' + mItems.get(position).event.getTimeStr());
+            viewHolder.bindToEvent(model);
+            viewHolder.mView.setOnClickListener(
+                    view -> {
+                        if (mTwoPane) {
+                            Bundle arguments = new Bundle();
+                            arguments.putString(EventDetailFragment.ARG_ITEM_ID, key);
+                            EventDetailFragment fragment = new EventDetailFragment();
+                            fragment.setArguments(arguments);
+                            getSupportFragmentManager().beginTransaction()
+                                    .replace(R.id.event_detail_container, fragment)
+                                    .commit();
+                        } else {
+                            Context context = view.getContext();
+                            Intent intent = new Intent(context, EventDetailActivity.class);
+                            intent.putExtra(EventDetailFragment.ARG_ITEM_ID, key);
 
-            holder.mView.setOnClickListener(view -> {
-                    if (mTwoPane) {
-                        Bundle arguments = new Bundle();
-                        arguments.putString(EventDetailFragment.ARG_ITEM_ID, holder.mItem.id);
-                        EventDetailFragment fragment = new EventDetailFragment();
-                        fragment.setArguments(arguments);
-                        getSupportFragmentManager().beginTransaction()
-                                .replace(R.id.event_detail_container, fragment)
-                                .commit();
-                    } else {
-                        Context context = view.getContext();
-                        Intent intent = new Intent(context, EventDetailActivity.class);
-                        intent.putExtra(EventDetailFragment.ARG_ITEM_ID, holder.mItem.id);
-
-                        context.startActivity(intent);
+                            context.startActivity(intent);
+                        }
                     }
-                }
             );
-        }
-
-        @Override
-        public int getItemCount() {
-            return mItems.size();
-        }
-
-        public class SimpleViewHolder extends RecyclerView.ViewHolder {
-            public final View mView;
-            public final TextView mNameView;
-            public final TextView mDateView;
-            public EventContent.EventItem mItem;
-
-            public SimpleViewHolder(View view) {
-                super(view);
-                mView = view;
-                mNameView = view.findViewById(R.id.event_item_name);
-                mDateView = view.findViewById(R.id.event_item_date);
-            }
-
-            @Override
-            public String toString() {
-                return super.toString() + " '" + mDateView.getText() + "'";
-            }
         }
     }
 }
