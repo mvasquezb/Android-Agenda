@@ -70,6 +70,9 @@ public class Manager {
     }
 
     public static DatabaseReference resolveEndpoint(DatabaseReference ref, String... resources) {
+        if (resources == null) {
+            return ref;
+        }
         for (String res : resources) {
             ref = ref.child(res);
         }

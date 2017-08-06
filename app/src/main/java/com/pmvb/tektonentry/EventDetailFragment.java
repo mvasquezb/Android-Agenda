@@ -1,7 +1,10 @@
 package com.pmvb.tektonentry;
 
 import android.app.Activity;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
@@ -10,6 +13,9 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationManagerCompat;
+import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -187,6 +193,10 @@ public class EventDetailFragment extends Fragment
         }
     }
 
+    /**
+     * Notification methods
+     */
+
     private void toggleNotification() {
         toggleNotification(!mNotify);
     }
@@ -201,6 +211,11 @@ public class EventDetailFragment extends Fragment
             mNotificationRef.setValue(notify);
         }
         mNotify = notify;
+        if (notify) {
+            scheduleNotification();
+        } else {
+            removeNotification();
+        }
     }
 
     private void toggleNotificationIcon(boolean notify) {
@@ -219,6 +234,32 @@ public class EventDetailFragment extends Fragment
             );
         }
     }
+
+    private void removeNotification() {
+    }
+
+    private void scheduleNotification() {
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(getContext())
+                .setSmallIcon(android.R.drawable.ic_dialog_alert)
+                .setContentTitle("A event you're subscribed to is about to start")
+                .setContentText(mItem.getName() + " starts in one hour");
+        Intent intent = new Intent(getContext(), getActivity().getClass());
+        intent.putExtra(ARG_EVENT_ID, getArguments().getString(ARG_EVENT_ID));
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(getContext());
+        stackBuilder.addParentStack(getActivity());
+        stackBuilder.addNextIntent(intent);
+
+        PendingIntent pendingIntent = stackBuilder.getPendingIntent(
+                0, PendingIntent.FLAG_UPDATE_CURRENT);
+        builder.setContentIntent(pendingIntent);
+        NotificationManager notificationManager = (NotificationManager) getActivity()
+                .getSystemService(Context.NOTIFICATION_SERVICE);
+        notificationManager.notify(1, builder.build());
+    }
+
+    /**
+     * Map related methods
+     */
 
     private void mapSetup() {
         mMapFragment = (CustomMapFragment) getChildFragmentManager()
