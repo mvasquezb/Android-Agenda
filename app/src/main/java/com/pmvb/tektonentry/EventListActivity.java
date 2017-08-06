@@ -172,22 +172,18 @@ public class EventListActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == CREATE_EVENT_REQUEST) {
             if (resultCode == RESULT_OK) {
-                Snackbar.make(findViewById(R.id.btn_add_event), mEventManager.getEndpoint(mEventManager.getResourceName(), data.getStringExtra("agenda_new_event")), Snackbar.LENGTH_LONG).show();
-                mEventManager.updateDB();
+                Snackbar.make(
+                        findViewById(R.id.btn_add_event),
+                        R.string.event_submit_success,
+                        Snackbar.LENGTH_LONG).show();
+            } else {
+                Snackbar.make(
+                        findViewById(R.id.btn_add_event),
+                        R.string.event_submit_error,
+                        Snackbar.LENGTH_LONG).show();
             }
         }
     }
-
-//    public void setEventListAdapter(SimpleItemAdapter adapter) {
-//        mAdapter = adapter;
-//    }
-
-//    private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
-//        if (mAdapter == null) {
-//            setEventListAdapter(new SimpleItemAdapter(EventManager.ITEMS));
-//        }
-//        recyclerView.setAdapter(mAdapter);
-//    }
 
     private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
         mAdapter = new FirebaseEventAdapter(
@@ -198,36 +194,6 @@ public class EventListActivity extends AppCompatActivity {
         );
         recyclerView.setAdapter(mAdapter);
     }
-
-//    public class SimpleItemAdapter
-//            extends RecyclerView.Adapter<EventViewHolder> {
-//
-//        private final List<EventDBMapper> mItems;
-//
-//        public SimpleItemAdapter(List<EventDBMapper> items) {
-//            this.mItems = items;
-//        }
-//
-//        @Override
-//        public EventViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-//            View view = LayoutInflater.from(parent.getContext())
-//                    .inflate(R.layout.event_list_content, parent, false);
-//            return new EventViewHolder(view);
-//        }
-//
-//        @Override
-//        public void onBindViewHolder(final EventViewHolder holder, int position) {
-//            EventDBMapper item = mItems.get(position);
-//            holder.bindToEvent(item.getEvent());
-//
-//            holder.mView.setOnClickListener(EventListActivity.this);
-//        }
-//
-//        @Override
-//        public int getItemCount() {
-//            return mItems.size();
-//        }
-//    }
 
     public class FirebaseEventAdapter extends FirebaseRecyclerAdapter<Event, EventViewHolder> {
 
