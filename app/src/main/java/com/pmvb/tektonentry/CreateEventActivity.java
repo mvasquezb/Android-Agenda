@@ -32,11 +32,9 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.database.FirebaseDatabase;
 import com.pmvb.tektonentry.event.Event;
 import com.pmvb.tektonentry.event.EventManager;
-import com.pmvb.tektonentry.event.EventParcelable;
 import com.pmvb.tektonentry.util.CustomMapFragment;
 
 import butterknife.BindView;

@@ -10,11 +10,8 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.support.design.widget.FloatingActionButton;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
 
 import com.crashlytics.android.Crashlytics;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
@@ -25,10 +22,8 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.pmvb.tektonentry.event.Event;
 import com.pmvb.tektonentry.event.EventManager;
-import com.pmvb.tektonentry.event.EventParcelable;
 import com.pmvb.tektonentry.viewholder.EventViewHolder;
 
-import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;

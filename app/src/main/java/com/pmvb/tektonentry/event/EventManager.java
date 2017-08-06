@@ -1,6 +1,5 @@
 package com.pmvb.tektonentry.event;
 
-import android.provider.ContactsContract;
 
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -8,7 +7,6 @@ import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class EventManager {
@@ -63,10 +61,6 @@ public class EventManager {
             builder.append(cleanResourceName(resName));
         }
         return builder.toString();
-    }
-
-    public void updateDB() {
-        mDatabase = FirebaseDatabase.getInstance().getReference();
     }
 
     public ValueEventListener addValueEventListener(ValueEventListener listener) {

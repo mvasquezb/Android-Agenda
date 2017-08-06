@@ -1,7 +1,6 @@
 package com.pmvb.tektonentry.event;
 
 import com.google.android.gms.maps.model.LatLng;
-import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.Exclude;
 
 import java.util.Calendar;
