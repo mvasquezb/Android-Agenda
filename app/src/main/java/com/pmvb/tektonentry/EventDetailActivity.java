@@ -71,7 +71,8 @@ public class EventDetailActivity extends LoginProtectedActivity {
             //
             // http://developer.android.com/design/patterns/navigation.html#up-vs-back
             //
-            NavUtils.navigateUpTo(this, new Intent(this, EventListActivity.class));
+//            NavUtils.navigateUpTo(this, new Intent(this, EventListActivity.class));
+            onBackPressed();
             return true;
         }
         return super.onOptionsItemSelected(item);
