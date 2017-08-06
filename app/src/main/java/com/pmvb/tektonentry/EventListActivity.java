@@ -124,11 +124,6 @@ public class EventListActivity extends LoginProtectedActivity {
                         findViewById(R.id.btn_add_event),
                         R.string.event_submit_success,
                         Snackbar.LENGTH_LONG).show();
-            } else {
-                Snackbar.make(
-                        findViewById(R.id.btn_add_event),
-                        R.string.event_submit_error,
-                        Snackbar.LENGTH_LONG).show();
             }
         }
     }
