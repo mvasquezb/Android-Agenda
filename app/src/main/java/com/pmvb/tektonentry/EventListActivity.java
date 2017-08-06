@@ -216,7 +216,7 @@ public class EventListActivity extends AppCompatActivity {
                     view -> {
                         if (mTwoPane) {
                             Bundle arguments = new Bundle();
-                            arguments.putString(EventDetailFragment.ARG_ITEM_ID, key);
+                            arguments.putString(EventDetailFragment.ARG_EVENT_ID, key);
                             EventDetailFragment fragment = new EventDetailFragment();
                             fragment.setArguments(arguments);
                             getSupportFragmentManager().beginTransaction()
@@ -225,7 +225,7 @@ public class EventListActivity extends AppCompatActivity {
                         } else {
                             Context context = view.getContext();
                             Intent intent = new Intent(context, EventDetailActivity.class);
-                            intent.putExtra(EventDetailFragment.ARG_ITEM_ID, key);
+                            intent.putExtra(EventDetailFragment.ARG_EVENT_ID, key);
 
                             context.startActivity(intent);
                         }

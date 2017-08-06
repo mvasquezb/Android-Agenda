@@ -5,9 +5,11 @@ import android.content.Context;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
+import android.support.annotation.Nullable;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,10 +23,17 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.pmvb.tektonentry.event.Event;
 import com.pmvb.tektonentry.event.EventManager;
 import com.pmvb.tektonentry.util.CustomMapFragment;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
 
 /**
  * A fragment representing a single EventManager detail screen.
@@ -43,13 +52,22 @@ public class EventDetailFragment extends Fragment
      * The fragment argument representing the item ID that this fragment
      * represents.
      */
-    public static final String ARG_ITEM_ID = "item_id";
+    public static final String ARG_EVENT_ID = "event_id";
 
     /**
      * The content this fragment is presenting.
      */
     private Event mItem;
     private DatabaseReference mEventRef;
+
+    private CollapsingToolbarLayout mAppBarLayout;
+    private View mRootView;
+    private ValueEventListener mEventLoadListener;
+
+    @BindView(R.id.event_detail_date)
+    TextView dateText;
+    @BindView(R.id.event_detail_time)
+    TextView timeText;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -62,40 +80,63 @@ public class EventDetailFragment extends Fragment
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (getArguments().containsKey(ARG_ITEM_ID)) {
-            // Load the dummy content specified by the fragment
-            // arguments. In a real-world scenario, use a Loader
-            // to load content from a content provider.
-//            mItem = new EventManager("events").get(getArguments().getString(ARG_ITEM_ID));
+        if (getArguments().containsKey(ARG_EVENT_ID)) {
+            mEventRef = EventManager.resolveEndpoint(
+                    FirebaseDatabase.getInstance().getReference(),
+                    "events",
+                    getArguments().getString(ARG_EVENT_ID)
+            );
 
             Activity activity = getActivity();
-            CollapsingToolbarLayout appBarLayout = activity.findViewById(R.id.toolbar_layout);
-            if (appBarLayout != null) {
-                appBarLayout.setTitle(mItem.getName());
-            }
+            mAppBarLayout = activity.findViewById(R.id.toolbar_layout);
         }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.event_detail, container, false);
+        mRootView = inflater.inflate(R.layout.event_detail, container, false);
+        ButterKnife.bind(this, mRootView);
 
-        if (mItem != null) {
-            TextView dateText = rootView.findViewById(R.id.event_detail_date);
-            dateText.setText(mItem.getDateStr());
-
-            TextView timeText = rootView.findViewById(R.id.event_detail_time);
-            timeText.setText(mItem.getTimeStr());
-
-            mapSetup();
-        }
-        return rootView;
+        return mRootView;
     }
 
     @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
+    public void onStart() {
+        super.onStart();
+
+        ValueEventListener eventLoadListener = new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                mItem = dataSnapshot.getValue(Event.class);
+
+                if (mAppBarLayout != null && mItem != null) {
+                    mAppBarLayout.setTitle(mItem.getName());
+                }
+
+                if (mItem != null) {
+                    dateText.setText(mItem.getDateStr());
+                    timeText.setText(mItem.getTimeStr());
+
+                    mapSetup();
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Snackbar.make(dateText, "Failed to load event.", Snackbar.LENGTH_LONG).show();
+            }
+        };
+        mEventRef.addValueEventListener(eventLoadListener);
+        mEventLoadListener = eventLoadListener;
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (mEventLoadListener != null) {
+            mEventRef.removeEventListener(mEventLoadListener);
+        }
     }
 
     private void mapSetup() {
