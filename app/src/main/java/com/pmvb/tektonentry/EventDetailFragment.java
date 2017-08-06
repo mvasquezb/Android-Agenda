@@ -87,6 +87,7 @@ public class EventDetailFragment extends Fragment
     // Might be null if fragment is loaded without EventDetailActivity (until this is checked)
     FloatingActionButton notificationToggle;
     private boolean mNotify;
+    private Integer mNotificationId;
     private ValueEventListener mNotificationListener;
 
     /**
@@ -113,7 +114,7 @@ public class EventDetailFragment extends Fragment
                     "user-events",
                     FirebaseAuth.getInstance().getCurrentUser().getUid(),
                     eventId,
-                    "notify"
+                    "notification"
             );
 
             Activity activity = getActivity();
@@ -166,12 +167,13 @@ public class EventDetailFragment extends Fragment
         ValueEventListener notificationListener = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                Object value = dataSnapshot.getValue();
+                Long notificationId = (Long) dataSnapshot.getValue();
                 boolean notify;
-                if (value == null) {
+                if (notificationId == null) {
                     notify = false;
                 } else {
-                    notify = (Boolean) value;
+                    notify = true;
+                    mNotificationId = notificationId.intValue();
                 }
                 if (mItem != null && notificationToggle != null) {
                     toggleNotificationIcon(notify);
@@ -214,7 +216,10 @@ public class EventDetailFragment extends Fragment
     private void toggleNotification(boolean notify, boolean send) {
         toggleNotificationIcon(notify);
         if (send && mNotify != notify) {
-            mNotificationRef.setValue(notify);
+            if (mNotificationId == null) {
+                mNotificationId = createNotificationId();
+            }
+            mNotificationRef.setValue(mNotificationId);
         }
         mNotify = notify;
         if (notify) {
@@ -242,6 +247,12 @@ public class EventDetailFragment extends Fragment
     }
 
     private void removeNotification() {
+        if (mNotificationId == 0) {
+            return;
+        }
+        NotificationManager notificationManager = (NotificationManager) getActivity()
+                .getSystemService(Context.NOTIFICATION_SERVICE);
+        notificationManager.cancel(mNotificationId);
     }
 
     private void scheduleNotification() {
@@ -264,7 +275,11 @@ public class EventDetailFragment extends Fragment
         builder.setContentIntent(pendingIntent);
         NotificationManager notificationManager = (NotificationManager) getActivity()
                 .getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.notify(createNotificationId(), builder.build());
+
+        if (mNotificationId == null) {
+            mNotificationId = createNotificationId();
+        }
+        notificationManager.notify(mNotificationId, builder.build());
     }
 
     private int createNotificationId() {
