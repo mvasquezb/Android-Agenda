@@ -49,6 +49,14 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.pmvb.tektonentry.EventListActivity"/>
         </activity>
+        <activity
+            android:name=".UserEventListActivity"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:parentActivityName=".EventListActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.pmvb.tektonentry.EventListActivity"/>
+        </activity>
 
         <receiver
             android:name=".util.EventNotificationReceiver"
