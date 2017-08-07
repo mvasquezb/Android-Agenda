@@ -53,12 +53,7 @@
         <receiver
             android:name=".util.EventNotificationReceiver"
             android:exported="true"
-            android:enabled="true">
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED"/>
-                <category android:name="android.intent.category.DEFAULT"/>
-            </intent-filter>
-        </receiver>
+            android:enabled="true"/>
 
         <meta-data
             android:name="io.fabric.ApiKey"
