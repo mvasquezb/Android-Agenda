@@ -3,6 +3,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context=".EventListActivityActivity">
     <item
+        android:id="@+id/menu_action_my_events"
+        android:title="My Events"
+        app:showAsAction="never"/>
+    <item
         android:id="@+id/menu_action_logout"
         android:title="@string/menu_action_logout"
         android:orderInCategory="100"
