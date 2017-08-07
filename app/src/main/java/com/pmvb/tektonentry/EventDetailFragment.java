@@ -285,7 +285,12 @@ public class EventDetailFragment extends Fragment
         Log.e("EventDetailFragment", "Event date: " + mItem.getDate().getTime().toString());
         Log.e("EventDetailFragment", " Notification date: " + new Date(notificationTime).toString());
 
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(getContext(), 1, intent, 0);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                getContext(),
+                1,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT
+        );
         AlarmManager alarmManager = (AlarmManager) getActivity().getSystemService(Context.ALARM_SERVICE);
         alarmManager.set(AlarmManager.RTC_WAKEUP, notificationTime, pendingIntent);
     }
