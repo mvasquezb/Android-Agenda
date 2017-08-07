@@ -4,24 +4,27 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatActivity;
+import android.support.design.widget.Snackbar;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.TextView;
-import com.crashlytics.android.Crashlytics;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.pmvb.tektonentry.event.EventContent;
 
-import java.util.List;
+import com.crashlytics.android.Crashlytics;
+import com.firebase.ui.database.FirebaseRecyclerAdapter;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.pmvb.tektonentry.db.EventListManager;
+import com.pmvb.tektonentry.models.Event;
+import com.pmvb.tektonentry.viewholder.EventViewHolder;
+
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
 import io.fabric.sdk.android.Fabric;
 
 /**
@@ -32,8 +35,9 @@ import io.fabric.sdk.android.Fabric;
  * item details. On tablets, the activity presents the list of items and
  * item details side-by-side using two vertical panes.
  */
-public class EventListActivity extends AppCompatActivity {
+public class EventListActivity extends LoginProtectedActivity {
     public static final String TAG = "EventListActivity";
+    public static final int CREATE_EVENT_REQUEST = 1;
 
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet
@@ -41,35 +45,35 @@ public class EventListActivity extends AppCompatActivity {
      */
     private boolean mTwoPane;
 
-    private FirebaseAuth mAuth;
-    private FirebaseAuth.AuthStateListener mAuthListener;
+    private EventListManager mEventManager;
+
+    @BindView(R.id.event_list)
+    RecyclerView eventListView;
+    private FirebaseEventAdapter mAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Fabric.with(this, new Crashlytics());
         setContentView(R.layout.activity_event_list);
+        ButterKnife.bind(this);
 
-        initFirebaseAuth();
-        FirebaseUser user = mAuth.getCurrentUser();
-        if (user != null) {
-//            Snackbar.make(findViewById(R.id.add_event), user.getEmail(), Snackbar.LENGTH_LONG).show();
-        }
+        mEventManager = new EventListManager(
+                FirebaseDatabase.getInstance().getReference(),
+                "events"
+        );
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         toolbar.setTitle(getTitle());
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.add_event);
-        fab.setOnClickListener((view) -> {
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show();
-            }
-        );
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.btn_add_event);
+        fab.setOnClickListener(view -> {
+            redirectEventCreate();
+        });
 
-        View recyclerView = findViewById(R.id.event_list);
-        assert recyclerView != null;
-        setupRecyclerView((RecyclerView) recyclerView);
+        assert eventListView != null;
+        setupRecyclerView(eventListView);
 
         if (findViewById(R.id.event_detail_container) != null) {
             // The detail container view will be present only in the
@@ -99,12 +103,6 @@ public class EventListActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void requestLogin() {
-        Intent login = new Intent(getApplicationContext(), LoginActivity.class);
-        startActivity(login);
-        finish();
-    }
-
     private void logoutAction() {
         // Launch LoginActivity with logout flag
         Intent logout = new Intent(this, LoginActivity.class);
@@ -113,103 +111,117 @@ public class EventListActivity extends AppCompatActivity {
         finish();
     }
 
-    private void initFirebaseAuth() {
-        mAuth = FirebaseAuth.getInstance();
-        mAuthListener = firebaseAuth -> {
-            FirebaseUser user = firebaseAuth.getCurrentUser();
-            if (user != null) {
-                // User is signed in
-                Log.d(TAG, "onAuthStateChanged:signed_in:" + user.getUid());
-            } else {
-                // User is signed out
-                Log.d(TAG, "onAuthStateChanged:signed_out");
-                requestLogin();
+    private void redirectEventCreate() {
+        Intent addEvent = new Intent(getApplicationContext(), CreateEventActivity.class);
+        startActivityForResult(addEvent, CREATE_EVENT_REQUEST);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == CREATE_EVENT_REQUEST) {
+            if (resultCode == RESULT_OK) {
+                Snackbar.make(
+                        findViewById(R.id.btn_add_event),
+                        R.string.event_submit_success,
+                        Snackbar.LENGTH_LONG).show();
             }
-        };
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        mAuth.addAuthStateListener(mAuthListener);
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        if (mAuthListener != null) {
-            mAuth.removeAuthStateListener(mAuthListener);
         }
     }
 
     private void setupRecyclerView(@NonNull RecyclerView recyclerView) {
-        recyclerView.setAdapter(new SimpleItemRecyclerViewAdapter(EventContent.ITEMS));
+        mAdapter = new FirebaseEventAdapter(
+                Event.class,
+                R.layout.event_list_content,
+                EventViewHolder.class,
+                mEventManager.getQuery()
+        );
+        recyclerView.setAdapter(mAdapter);
     }
 
-    public class SimpleItemRecyclerViewAdapter
-            extends RecyclerView.Adapter<SimpleItemRecyclerViewAdapter.ViewHolder> {
+    public class FirebaseEventAdapter extends FirebaseRecyclerAdapter<Event, EventViewHolder> {
 
-        private final List<EventContent.EventItem> mValues;
-
-        public SimpleItemRecyclerViewAdapter(List<EventContent.EventItem> items) {
-            mValues = items;
+        /**
+         * @param modelClass      Firebase will marshall the data at a location into
+         *                        an instance of a class that you provide
+         * @param modelLayout     This is the layout used to represent a single item in the list.
+         *                        You will be responsible for populating an instance of the corresponding
+         *                        view with the data from an instance of modelClass.
+         * @param viewHolderClass The class that hold references to all sub-views in an instance modelLayout.
+         * @param ref             The Firebase location to watch for data changes. Can also be a slice of a location,
+         *                        using some combination of {@code limit()}, {@code startAt()}, and {@code endAt()}.
+         */
+        public FirebaseEventAdapter(Class<Event> modelClass, int modelLayout, Class<EventViewHolder> viewHolderClass, Query ref) {
+            super(modelClass, modelLayout, viewHolderClass, ref);
         }
 
         @Override
-        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            View view = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.event_list_content, parent, false);
-            return new ViewHolder(view);
+        protected void populateViewHolder(EventViewHolder viewHolder, Event model, int position) {
+            DatabaseReference eventRef = getRef(position);
+            String key = eventRef.getKey();
+
+            viewHolder.bindToEvent(model);
+            viewHolder.mView.setOnClickListener(new EventDetailLauncher(key));
+        }
+    }
+
+    public class EventDetailLauncher implements View.OnClickListener, Runnable {
+        private String mKey;
+        private Context mContext;
+
+        public EventDetailLauncher(String key) {
+            mKey = key;
         }
 
         @Override
-        public void onBindViewHolder(final ViewHolder holder, int position) {
-            holder.mItem = mValues.get(position);
-            holder.mIdView.setText(mValues.get(position).id);
-            holder.mContentView.setText(mValues.get(position).content);
-
-            holder.mView.setOnClickListener(view -> {
-                    if (mTwoPane) {
-                        Bundle arguments = new Bundle();
-                        arguments.putString(EventDetailFragment.ARG_ITEM_ID, holder.mItem.id);
-                        EventDetailFragment fragment = new EventDetailFragment();
-                        fragment.setArguments(arguments);
-                        getSupportFragmentManager().beginTransaction()
-                                .replace(R.id.event_detail_container, fragment)
-                                .commit();
-                    } else {
-                        Context context = view.getContext();
-                        Intent intent = new Intent(context, EventDetailActivity.class);
-                        intent.putExtra(EventDetailFragment.ARG_ITEM_ID, holder.mItem.id);
-
-                        context.startActivity(intent);
-                    }
-                }
-            );
+        public void onClick(View view) {
+            Log.d(TAG, "RUN onClick");
+            run(view.getContext());
         }
 
-        @Override
-        public int getItemCount() {
-            return mValues.size();
-        }
-
-        public class ViewHolder extends RecyclerView.ViewHolder {
-            public final View mView;
-            public final TextView mIdView;
-            public final TextView mContentView;
-            public EventContent.EventItem mItem;
-
-            public ViewHolder(View view) {
-                super(view);
-                mView = view;
-                mIdView = view.findViewById(R.id.id);
-                mContentView = view.findViewById(R.id.content);
+        public void run(Context context) {
+            if (mContext == null) {
+                setContext(context);
             }
+            run();
+        }
 
-            @Override
-            public String toString() {
-                return super.toString() + " '" + mContentView.getText() + "'";
+        @Override
+        public void run() {
+            if (mContext == null) {
+                throw new NullPointerException("Context is not valid");
+            }
+            Log.d(TAG, "RUN with context: " + mContext.toString());
+            if (mTwoPane) {
+                showEventInFragment(mKey);
+            } else {
+                Intent intent = new Intent(mContext, EventDetailActivity.class);
+                intent.putExtra(EventDetailFragment.ARG_EVENT_ID, mKey);
+
+                mContext.startActivity(intent);
             }
         }
+
+        public String getKey(){
+            return mKey;
+        }
+
+        public void setKey(String key) {
+            mKey = key;
+        }
+
+        public void setContext(Context context) {
+            mContext = context;
+        }
+    }
+
+    private void showEventInFragment(String eventKey) {
+        Bundle arguments = new Bundle();
+        arguments.putString(EventDetailFragment.ARG_EVENT_ID, eventKey);
+        EventDetailFragment fragment = new EventDetailFragment();
+        fragment.setArguments(arguments);
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.event_detail_container, fragment)
+                .commit();
     }
 }
