@@ -1,6 +1,7 @@
 package com.pmvb.tektonentry;
 
 import android.app.Activity;
+import android.app.AlarmManager;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -14,11 +15,13 @@ import android.support.design.widget.CollapsingToolbarLayout;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.AlarmManagerCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -41,8 +44,10 @@ import com.pmvb.tektonentry.db.EventListManager;
 import com.pmvb.tektonentry.db.Manager;
 import com.pmvb.tektonentry.models.Event;
 import com.pmvb.tektonentry.util.CustomMapFragment;
+import com.pmvb.tektonentry.util.EventNotificationReceiver;
 
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
@@ -168,15 +173,12 @@ public class EventDetailFragment extends Fragment
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 Long notificationId = (Long) dataSnapshot.getValue();
-                boolean notify;
-                if (notificationId == null) {
-                    notify = false;
-                } else {
-                    notify = true;
+                if (notificationId != null) {
+                    mNotify = true;
                     mNotificationId = notificationId.intValue();
                 }
                 if (mItem != null && notificationToggle != null) {
-                    toggleNotificationIcon(notify);
+                    toggleNotificationIcon(mNotify);
                 }
             }
 
@@ -215,11 +217,12 @@ public class EventDetailFragment extends Fragment
 
     private void toggleNotification(boolean notify, boolean send) {
         toggleNotificationIcon(notify);
-        if (send && mNotify != notify) {
-            if (mNotificationId == null) {
-                mNotificationId = createNotificationId();
+        if (send && notify != mNotify) {
+            if (notify) {
+                mNotificationRef.setValue(getNotificationId());
+            } else {
+                mNotificationRef.setValue(null);
             }
-            mNotificationRef.setValue(mNotificationId);
         }
         mNotify = notify;
         if (notify) {
@@ -233,53 +236,72 @@ public class EventDetailFragment extends Fragment
         if (notificationToggle == null) {
             return;
         }
-        if (notify && !mNotify) {
-            notificationToggle.setImageDrawable(ContextCompat.getDrawable(
-                    getContext(),
-                    R.drawable.ic_notifications_active_white_24dp)
-            );
-        } else if (!notify && mNotify) {
-            notificationToggle.setImageDrawable(ContextCompat.getDrawable(
-                    getContext(),
-                    R.drawable.ic_notifications_none_white_24dp)
-            );
+        int drawable;
+        if (notify) {
+            drawable = R.drawable.ic_notifications_active_white_24dp;
+        } else {
+            drawable = R.drawable.ic_notifications_none_white_24dp;
         }
+        notificationToggle.setImageDrawable(
+                ContextCompat.getDrawable(getContext(), drawable)
+        );
     }
 
     private void removeNotification() {
-        if (mNotificationId == 0) {
-            return;
-        }
         NotificationManager notificationManager = (NotificationManager) getActivity()
                 .getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.cancel(mNotificationId);
+        notificationManager.cancel(getNotificationId());
     }
 
     private void scheduleNotification() {
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(getContext())
-                .setSmallIcon(android.R.drawable.ic_dialog_alert)
-                .setContentTitle("A event you're subscribed to is about to start")
-                .setContentText(mItem.getName() + " starts in one hour");
-        // Get notification sound
-        Uri soundUri= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-        builder.setSound(soundUri);
+//        NotificationCompat.Builder builder = new NotificationCompat.Builder(getContext())
+//                .setSmallIcon(android.R.drawable.ic_dialog_alert)
+//                .setContentTitle("A event you're subscribed to is about to start")
+//                .setContentText(mItem.getName() + " starts in one hour");
+//        // Get notification sound
+//        Uri soundUri= RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+//        builder.setSound(soundUri);
+//
+//        Intent intent = new Intent(getContext(), getActivity());
+//        intent.putExtra(ARG_EVENT_ID, getArguments().getString(ARG_EVENT_ID));
+//        TaskStackBuilder stackBuilder = TaskStackBuilder.create(getContext());
+//        stackBuilder.addParentStack(getActivity());
+//        stackBuilder.addNextIntent(intent);
+//
+//        PendingIntent pendingIntent = stackBuilder.getPendingIntent(
+//                0, PendingIntent.FLAG_UPDATE_CURRENT);
+//        builder.setContentIntent(pendingIntent);
+//        NotificationManager notificationManager = (NotificationManager) getActivity()
+//                .getSystemService(Context.NOTIFICATION_SERVICE);
+//
+//        notificationManager.notify(getNotificationId(), builder.build());
 
-        Intent intent = new Intent(getContext(), getActivity().getClass());
+        Intent intent = new Intent(getContext(), EventNotificationReceiver.class);
+        intent.putExtra("event_name", mItem.getName());
+        intent.putExtra("notification_id", getNotificationId());
         intent.putExtra(ARG_EVENT_ID, getArguments().getString(ARG_EVENT_ID));
-        TaskStackBuilder stackBuilder = TaskStackBuilder.create(getContext());
-        stackBuilder.addParentStack(getActivity());
-        stackBuilder.addNextIntent(intent);
 
-        PendingIntent pendingIntent = stackBuilder.getPendingIntent(
-                0, PendingIntent.FLAG_UPDATE_CURRENT);
-        builder.setContentIntent(pendingIntent);
-        NotificationManager notificationManager = (NotificationManager) getActivity()
-                .getSystemService(Context.NOTIFICATION_SERVICE);
+        long notificationTime = getTimeToNotification();
+        Log.e("EventDetailFragment", "Event date: " + mItem.getDate().getTime().toString());
+        Log.e("EventDetailFragment", " Notification date: " + new Date(notificationTime).toString());
 
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(getContext(), 1, intent, 0);
+        AlarmManager alarmManager = (AlarmManager) getActivity().getSystemService(Context.ALARM_SERVICE);
+        alarmManager.set(AlarmManager.RTC_WAKEUP, notificationTime, pendingIntent);
+    }
+
+    public long getTimeToNotification() {
+        Calendar eventDate = mItem.getDate(); // DateTime
+        eventDate.add(Calendar.HOUR_OF_DAY, -1);
+
+        return eventDate.getTimeInMillis();
+    }
+
+    private int getNotificationId() {
         if (mNotificationId == null) {
             mNotificationId = createNotificationId();
         }
-        notificationManager.notify(mNotificationId, builder.build());
+        return mNotificationId;
     }
 
     private int createNotificationId() {

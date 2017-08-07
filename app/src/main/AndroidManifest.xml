@@ -50,6 +50,16 @@
                 android:value="com.pmvb.tektonentry.EventListActivity"/>
         </activity>
 
+        <receiver
+            android:name=".util.EventNotificationReceiver"
+            android:exported="true"
+            android:enabled="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </receiver>
+
         <meta-data
             android:name="io.fabric.ApiKey"
             android:value="76d06d81535359540bf2c88ee218d0ec5672103c" />

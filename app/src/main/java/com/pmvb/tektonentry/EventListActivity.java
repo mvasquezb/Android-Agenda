@@ -8,8 +8,10 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.support.design.widget.FloatingActionButton;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 import com.crashlytics.android.Crashlytics;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
@@ -55,7 +57,6 @@ public class EventListActivity extends LoginProtectedActivity {
         Fabric.with(this, new Crashlytics());
         setContentView(R.layout.activity_event_list);
         ButterKnife.bind(this);
-//        mAdapter = new SimpleItemAdapter(EventListManager.ITEMS);
 
         mEventManager = new EventListManager(
                 FirebaseDatabase.getInstance().getReference(),
@@ -160,25 +161,67 @@ public class EventListActivity extends LoginProtectedActivity {
             String key = eventRef.getKey();
 
             viewHolder.bindToEvent(model);
-            viewHolder.mView.setOnClickListener(
-                    view -> {
-                        if (mTwoPane) {
-                            Bundle arguments = new Bundle();
-                            arguments.putString(EventDetailFragment.ARG_EVENT_ID, key);
-                            EventDetailFragment fragment = new EventDetailFragment();
-                            fragment.setArguments(arguments);
-                            getSupportFragmentManager().beginTransaction()
-                                    .replace(R.id.event_detail_container, fragment)
-                                    .commit();
-                        } else {
-                            Context context = view.getContext();
-                            Intent intent = new Intent(context, EventDetailActivity.class);
-                            intent.putExtra(EventDetailFragment.ARG_EVENT_ID, key);
-
-                            context.startActivity(intent);
-                        }
-                    }
-            );
+            viewHolder.mView.setOnClickListener(new EventDetailLauncher(key));
         }
+    }
+
+    public class EventDetailLauncher implements View.OnClickListener, Runnable {
+        private String mKey;
+        private Context mContext;
+
+        public EventDetailLauncher(String key) {
+            mKey = key;
+        }
+
+        @Override
+        public void onClick(View view) {
+            Log.d(TAG, "RUN onClick");
+            run(view.getContext());
+        }
+
+        public void run(Context context) {
+            if (mContext == null) {
+                setContext(context);
+            }
+            run();
+        }
+
+        @Override
+        public void run() {
+            if (mContext == null) {
+                throw new NullPointerException("Context is not valid");
+            }
+            Log.d(TAG, "RUN with context: " + mContext.toString());
+            if (mTwoPane) {
+                showEventInFragment(mKey);
+            } else {
+                Intent intent = new Intent(mContext, EventDetailActivity.class);
+                intent.putExtra(EventDetailFragment.ARG_EVENT_ID, mKey);
+
+                mContext.startActivity(intent);
+            }
+        }
+
+        public String getKey(){
+            return mKey;
+        }
+
+        public void setKey(String key) {
+            mKey = key;
+        }
+
+        public void setContext(Context context) {
+            mContext = context;
+        }
+    }
+
+    private void showEventInFragment(String eventKey) {
+        Bundle arguments = new Bundle();
+        arguments.putString(EventDetailFragment.ARG_EVENT_ID, eventKey);
+        EventDetailFragment fragment = new EventDetailFragment();
+        fragment.setArguments(arguments);
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.event_detail_container, fragment)
+                .commit();
     }
 }

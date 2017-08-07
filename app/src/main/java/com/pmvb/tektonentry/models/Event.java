@@ -15,8 +15,6 @@ import java.util.Map;
 public class Event {
     private String name;
     private Calendar date;
-    private int hourOfDay;
-    private int minute;
     private LatLng location;
 
     public Event() {
@@ -39,7 +37,7 @@ public class Event {
         this.setName(name);
         this.setDate(Calendar.getInstance());
         this.getDate().setTime(date);
-        this.setHourOfDay(hourOfDay);
+        this.setHour(hourOfDay);
         this.setMinute(minute);
         this.setLocation(location);
     }
@@ -61,24 +59,30 @@ public class Event {
         this.date = date;
     }
 
+    @Exclude
+    public void setDate(Date date) {
+        this.date = Calendar.getInstance();
+        this.date.setTime(date);
+    }
+
     public void setDate(String dateStr) {
         setDate(getDateFromString(dateStr));
     }
 
-    public int getHourOfDay() {
-        return hourOfDay;
+    public int getHour() {
+        return date.get(Calendar.HOUR_OF_DAY);
     }
 
-    public void setHourOfDay(int hourOfDay) {
-        this.hourOfDay = hourOfDay;
+    public void setHour(int hourOfDay) {
+        date.set(Calendar.HOUR_OF_DAY, hourOfDay);
     }
 
     public int getMinute() {
-        return minute;
+        return date.get(Calendar.MINUTE);
     }
 
     public void setMinute(int minute) {
-        this.minute = minute;
+        date.set(Calendar.MINUTE, minute);
     }
 
     @Exclude
@@ -125,7 +129,7 @@ public class Event {
 
     @Exclude
     public String getTimeStr() {
-        return String.format("%02d:%02d", hourOfDay, minute);
+        return String.format("%02d:%02d", getHour(), getMinute());
     }
 
     @Exclude
@@ -139,7 +143,7 @@ public class Event {
 
         data.put("name", getName());
         data.put("date", getDateStr());
-        data.put("hour", getHourOfDay());
+        data.put("hour", getHour());
         data.put("minute", getMinute());
         data.put("latitude", getLocation().latitude);
         data.put("longitude", getLocation().longitude);
