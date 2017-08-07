@@ -5,18 +5,16 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.support.design.widget.FloatingActionButton;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 import com.crashlytics.android.Crashlytics;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
@@ -37,7 +35,7 @@ import io.fabric.sdk.android.Fabric;
  * item details. On tablets, the activity presents the list of items and
  * item details side-by-side using two vertical panes.
  */
-public class EventListActivity extends AppCompatActivity {
+public class EventListActivity extends LoginProtectedActivity {
     public static final String TAG = "EventListActivity";
     public static final int CREATE_EVENT_REQUEST = 1;
 
@@ -47,8 +45,6 @@ public class EventListActivity extends AppCompatActivity {
      */
     private boolean mTwoPane;
 
-    private FirebaseAuth mAuth;
-    private FirebaseAuth.AuthStateListener mAuthListener;
     private EventListManager mEventManager;
 
     @BindView(R.id.event_list)
@@ -61,13 +57,6 @@ public class EventListActivity extends AppCompatActivity {
         Fabric.with(this, new Crashlytics());
         setContentView(R.layout.activity_event_list);
         ButterKnife.bind(this);
-//        mAdapter = new SimpleItemAdapter(EventListManager.ITEMS);
-
-        initFirebaseAuth();
-        FirebaseUser user = mAuth.getCurrentUser();
-        if (user != null) {
-//            Snackbar.make(findViewById(R.id.add_event), user.getEmail(), Snackbar.LENGTH_LONG).show();
-        }
 
         mEventManager = new EventListManager(
                 FirebaseDatabase.getInstance().getReference(),
@@ -114,47 +103,12 @@ public class EventListActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void requestLogin() {
-        Intent login = new Intent(getApplicationContext(), LoginActivity.class);
-        startActivity(login);
-        finish();
-    }
-
     private void logoutAction() {
         // Launch LoginActivity with logout flag
         Intent logout = new Intent(this, LoginActivity.class);
         logout.putExtra("logout", true);
         startActivity(logout);
         finish();
-    }
-
-    private void initFirebaseAuth() {
-        mAuth = FirebaseAuth.getInstance();
-        mAuthListener = firebaseAuth -> {
-            FirebaseUser user = firebaseAuth.getCurrentUser();
-            if (user != null) {
-                // User is signed in
-                Log.d(TAG, "onAuthStateChanged:signed_in:" + user.getUid());
-            } else {
-                // User is signed out
-                Log.d(TAG, "onAuthStateChanged:signed_out");
-                requestLogin();
-            }
-        };
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        mAuth.addAuthStateListener(mAuthListener);
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        if (mAuthListener != null) {
-            mAuth.removeAuthStateListener(mAuthListener);
-        }
     }
 
     private void redirectEventCreate() {
@@ -170,11 +124,6 @@ public class EventListActivity extends AppCompatActivity {
                 Snackbar.make(
                         findViewById(R.id.btn_add_event),
                         R.string.event_submit_success,
-                        Snackbar.LENGTH_LONG).show();
-            } else {
-                Snackbar.make(
-                        findViewById(R.id.btn_add_event),
-                        R.string.event_submit_error,
                         Snackbar.LENGTH_LONG).show();
             }
         }
@@ -212,25 +161,67 @@ public class EventListActivity extends AppCompatActivity {
             String key = eventRef.getKey();
 
             viewHolder.bindToEvent(model);
-            viewHolder.mView.setOnClickListener(
-                    view -> {
-                        if (mTwoPane) {
-                            Bundle arguments = new Bundle();
-                            arguments.putString(EventDetailFragment.ARG_EVENT_ID, key);
-                            EventDetailFragment fragment = new EventDetailFragment();
-                            fragment.setArguments(arguments);
-                            getSupportFragmentManager().beginTransaction()
-                                    .replace(R.id.event_detail_container, fragment)
-                                    .commit();
-                        } else {
-                            Context context = view.getContext();
-                            Intent intent = new Intent(context, EventDetailActivity.class);
-                            intent.putExtra(EventDetailFragment.ARG_EVENT_ID, key);
-
-                            context.startActivity(intent);
-                        }
-                    }
-            );
+            viewHolder.mView.setOnClickListener(new EventDetailLauncher(key));
         }
+    }
+
+    public class EventDetailLauncher implements View.OnClickListener, Runnable {
+        private String mKey;
+        private Context mContext;
+
+        public EventDetailLauncher(String key) {
+            mKey = key;
+        }
+
+        @Override
+        public void onClick(View view) {
+            Log.d(TAG, "RUN onClick");
+            run(view.getContext());
+        }
+
+        public void run(Context context) {
+            if (mContext == null) {
+                setContext(context);
+            }
+            run();
+        }
+
+        @Override
+        public void run() {
+            if (mContext == null) {
+                throw new NullPointerException("Context is not valid");
+            }
+            Log.d(TAG, "RUN with context: " + mContext.toString());
+            if (mTwoPane) {
+                showEventInFragment(mKey);
+            } else {
+                Intent intent = new Intent(mContext, EventDetailActivity.class);
+                intent.putExtra(EventDetailFragment.ARG_EVENT_ID, mKey);
+
+                mContext.startActivity(intent);
+            }
+        }
+
+        public String getKey(){
+            return mKey;
+        }
+
+        public void setKey(String key) {
+            mKey = key;
+        }
+
+        public void setContext(Context context) {
+            mContext = context;
+        }
+    }
+
+    private void showEventInFragment(String eventKey) {
+        Bundle arguments = new Bundle();
+        arguments.putString(EventDetailFragment.ARG_EVENT_ID, eventKey);
+        EventDetailFragment fragment = new EventDetailFragment();
+        fragment.setArguments(arguments);
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.event_detail_container, fragment)
+                .commit();
     }
 }

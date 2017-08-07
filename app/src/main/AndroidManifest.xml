@@ -41,14 +41,23 @@
         <activity
             android:name=".LoginActivity"
             android:windowSoftInputMode="stateHidden" />
+        <activity
+            android:name=".CreateEventActivity"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:parentActivityName=".EventListActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.pmvb.tektonentry.EventListActivity"/>
+        </activity>
+
+        <receiver
+            android:name=".util.EventNotificationReceiver"
+            android:exported="true"
+            android:enabled="true"/>
 
         <meta-data
             android:name="io.fabric.ApiKey"
             android:value="76d06d81535359540bf2c88ee218d0ec5672103c" />
-
-        <activity
-            android:name=".CreateEventActivity"
-            android:theme="@style/AppTheme.NoActionBar" />
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
              (See the file "res/values/google_maps_api.xml").

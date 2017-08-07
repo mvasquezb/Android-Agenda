@@ -289,10 +289,12 @@ public class CreateEventActivity extends AppCompatActivity
 
             Location location = locationManager.getLastKnownLocation(
                     locationManager.getBestProvider(criteria, false));
-            double latitude = location.getLatitude();
-            double longitude = location.getLongitude();
-            LatLng myLocation = new LatLng(latitude, longitude);
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 12));
+            if (location != null) {
+                double latitude = location.getLatitude();
+                double longitude = location.getLongitude();
+                LatLng myLocation = new LatLng(latitude, longitude);
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 14));
+            }
         }
     }
 
@@ -304,5 +306,14 @@ public class CreateEventActivity extends AppCompatActivity
         eventLocation = mMap.addMarker(
                 new MarkerOptions().position(latLng));
         locationField.setText(String.format("%f; %f", latLng.latitude, latLng.longitude));
+    }
+
+    private Location getLastKnownLocation() {
+        LocationManager locationManager = (LocationManager) getSystemService(
+                Context.LOCATION_SERVICE);
+        Criteria criteria = new Criteria();
+        Location location = locationManager.getLastKnownLocation(
+                locationManager.getBestProvider(criteria, false));
+        return location;
     }
 }

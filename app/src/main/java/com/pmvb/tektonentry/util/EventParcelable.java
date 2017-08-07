@@ -29,7 +29,7 @@ public class EventParcelable implements Parcelable {
                 getEvent().getDate().get(Calendar.DAY_OF_MONTH)
         });
         parcel.writeIntArray(new int[] {
-                getEvent().getHourOfDay(),
+                getEvent().getHour(),
                 getEvent().getMinute()
         });
         parcel.writeDouble(getEvent().getLocation().latitude);
