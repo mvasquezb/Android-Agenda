@@ -1,5 +1,6 @@
 package com.pmvb.tektonentry.db;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.pmvb.tektonentry.models.Event;
 
@@ -25,8 +26,10 @@ public class EventListManager extends ListManager<Event> {
         String key = getQuery().push().getKey();
         Map<String, Object> evtValues = item.toMap();
 
+//        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
         Map<String, Object> updates = new HashMap<>();
         updates.put(getEndpoint(getResourceName(), key), evtValues);
+//        updates.put(getEndpoint("user-events", uid, key), evtValues);
         getRoot().updateChildren(updates);
 
         return key;

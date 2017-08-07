@@ -94,6 +94,7 @@ public class EventDetailFragment extends Fragment
     private boolean mNotify;
     private Integer mNotificationId;
     private ValueEventListener mNotificationListener;
+    private DatabaseReference mUserEventRef;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -114,13 +115,13 @@ public class EventDetailFragment extends Fragment
                     "events",
                     eventId
             );
-            mNotificationRef = Manager.resolveEndpoint(
+            mUserEventRef = Manager.resolveEndpoint(
                     dbRef,
                     "user-events",
                     FirebaseAuth.getInstance().getCurrentUser().getUid(),
-                    eventId,
-                    "notification"
+                    eventId
             );
+            mNotificationRef = mUserEventRef.child("notification");
 
             Activity activity = getActivity();
             mAppBarLayout = activity.findViewById(R.id.toolbar_layout);
@@ -147,17 +148,19 @@ public class EventDetailFragment extends Fragment
         ValueEventListener eventLoadListener = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                mItem = dataSnapshot.getValue(Event.class);
+                if (dataSnapshot.exists()) {
+                    mItem = dataSnapshot.getValue(Event.class);
 
-                if (mAppBarLayout != null && mItem != null) {
-                    mAppBarLayout.setTitle(mItem.getName());
-                }
+                    if (mAppBarLayout != null && mItem != null) {
+                        mAppBarLayout.setTitle(mItem.getName());
+                    }
 
-                if (mItem != null) {
-                    dateText.setText(mItem.getDateStr());
-                    timeText.setText(mItem.getTimeStr());
+                    if (mItem != null) {
+                        dateText.setText(mItem.getDateStr());
+                        timeText.setText(mItem.getTimeStr());
 
-                    mapSetup();
+                        mapSetup();
+                    }
                 }
             }
 
@@ -218,11 +221,17 @@ public class EventDetailFragment extends Fragment
     private void toggleNotification(boolean notify, boolean send) {
         toggleNotificationIcon(notify);
         if (send && notify != mNotify) {
+            Log.i("EventDetailFragment", "Setting notification value");
             if (notify) {
+                Log.i("EventDetailFragment", "Activating notification");
+                mUserEventRef.setValue(mItem.toMap());
                 mNotificationRef.setValue(getNotificationId());
             } else {
-                mNotificationRef.setValue(null);
+                Log.i("EventDetailFragment", "Deactivating notification");
+                mUserEventRef.setValue(null);
+//                mNotificationRef.setValue(null);
             }
+            Log.i("EventDetailFragment", "End setting notification value");
         }
         mNotify = notify;
         if (notify) {

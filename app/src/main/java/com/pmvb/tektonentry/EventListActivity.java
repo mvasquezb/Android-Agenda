@@ -58,10 +58,7 @@ public class EventListActivity extends LoginProtectedActivity {
         setContentView(R.layout.activity_event_list);
         ButterKnife.bind(this);
 
-        mEventManager = new EventListManager(
-                FirebaseDatabase.getInstance().getReference(),
-                "events"
-        );
+        mEventManager = createEventManager();
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -99,8 +96,17 @@ public class EventListActivity extends LoginProtectedActivity {
         if (id == R.id.menu_action_logout) {
             logoutAction();
             return true;
+        } else if (id == R.id.menu_action_my_events) {
+            showUserEvents();
+            return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void showUserEvents() {
+        Intent userEvents = new Intent(this, UserEventListActivity.class);
+        startActivity(userEvents);
+//        finish();
     }
 
     private void logoutAction() {
@@ -137,6 +143,13 @@ public class EventListActivity extends LoginProtectedActivity {
                 mEventManager.getQuery()
         );
         recyclerView.setAdapter(mAdapter);
+    }
+
+    public EventListManager createEventManager() {
+        return new EventListManager(
+                FirebaseDatabase.getInstance().getReference(),
+                "events"
+        );
     }
 
     public class FirebaseEventAdapter extends FirebaseRecyclerAdapter<Event, EventViewHolder> {
