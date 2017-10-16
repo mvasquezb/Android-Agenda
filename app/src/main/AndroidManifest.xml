@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.pmvb.tektonentry">
+    package="com.pmvb.agenda">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!--
+         The ACCESS_COARSE/FINE_LOCATION permissions are not required to use
+         Google Maps Android API v2, but you must specify either coarse or fine
+         location permissions for the 'MyLocation' functionality. 
+    -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <application
         android:allowBackup="true"
@@ -10,29 +20,63 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".EventListActivity"
+            android:name="com.pmvb.agenda.EventListActivity"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <activity
-            android:name=".EventDetailActivity"
+            android:name="com.pmvb.agenda.EventDetailActivity"
             android:label="@string/title_event_detail"
-            android:parentActivityName=".EventListActivity"
+            android:parentActivityName="com.pmvb.agenda.EventListActivity"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.pmvb.tektonentry.EventListActivity" />
+                android:value="com.pmvb.agenda.EventListActivity" />
         </activity>
         <activity
-            android:name=".LoginActivity"
-            android:windowSoftInputMode="stateHidden"/>
+            android:name="com.pmvb.agenda.LoginActivity"
+            android:windowSoftInputMode="stateHidden" />
+        <activity
+            android:name="com.pmvb.agenda.CreateEventActivity"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:parentActivityName="com.pmvb.agenda.EventListActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.pmvb.agenda.EventListActivity"/>
+        </activity>
+        <activity
+            android:name="com.pmvb.agenda.UserEventListActivity"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:parentActivityName="com.pmvb.agenda.EventListActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.pmvb.agenda.EventListActivity"/>
+        </activity>
+
+        <receiver
+            android:name="com.pmvb.agenda.util.EventNotificationReceiver"
+            android:exported="true"
+            android:enabled="true"/>
+
         <meta-data
             android:name="io.fabric.ApiKey"
-            android:value="76d06d81535359540bf2c88ee218d0ec5672103c"/>
+            android:value="76d06d81535359540bf2c88ee218d0ec5672103c" />
+        <!--
+             The API key for Google Maps-based APIs is defined as a string resource.
+             (See the file "res/values/google_maps_api.xml").
+             Note that the API key is linked to the encryption key used to sign the APK.
+             You need a different API key for each encryption key, including the release key that is used to
+             sign the APK for publishing.
+             You can define the keys for the debug and release targets in src/debug/ and src/release/. 
+        -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="@string/google_maps_key" />
     </application>
-    <uses-permission android:name="android.permission.INTERNET" />
+
 </manifest>
