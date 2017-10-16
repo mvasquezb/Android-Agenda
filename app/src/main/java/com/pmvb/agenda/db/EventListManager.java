@@ -1,8 +1,7 @@
-package com.pmvb.tektonentry.db;
+package com.pmvb.agenda.db;
 
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
-import com.pmvb.tektonentry.models.Event;
+import com.pmvb.agenda.models.Event;
 
 import java.util.HashMap;
 import java.util.Map;

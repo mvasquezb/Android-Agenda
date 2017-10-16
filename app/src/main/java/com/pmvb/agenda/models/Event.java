@@ -1,4 +1,4 @@
-package com.pmvb.tektonentry.models;
+package com.pmvb.agenda.models;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.database.Exclude;

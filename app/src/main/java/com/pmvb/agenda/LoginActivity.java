@@ -1,4 +1,4 @@
-package com.pmvb.tektonentry;
+package com.pmvb.agenda;
 
 import android.app.ProgressDialog;
 import android.content.Intent;

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.pmvb.tektonentry">
+    package="com.pmvb.agenda">
 
     <uses-permission android:name="android.permission.INTERNET" />
 
@@ -20,7 +20,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".EventListActivity"
+            android:name="com.pmvb.agenda.EventListActivity"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
@@ -30,36 +30,36 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".EventDetailActivity"
+            android:name="com.pmvb.agenda.EventDetailActivity"
             android:label="@string/title_event_detail"
-            android:parentActivityName=".EventListActivity"
+            android:parentActivityName="com.pmvb.agenda.EventListActivity"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.pmvb.tektonentry.EventListActivity" />
+                android:value="com.pmvb.agenda.EventListActivity" />
         </activity>
         <activity
-            android:name=".LoginActivity"
+            android:name="com.pmvb.agenda.LoginActivity"
             android:windowSoftInputMode="stateHidden" />
         <activity
-            android:name=".CreateEventActivity"
+            android:name="com.pmvb.agenda.CreateEventActivity"
             android:theme="@style/AppTheme.NoActionBar"
-            android:parentActivityName=".EventListActivity">
+            android:parentActivityName="com.pmvb.agenda.EventListActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.pmvb.tektonentry.EventListActivity"/>
+                android:value="com.pmvb.agenda.EventListActivity"/>
         </activity>
         <activity
-            android:name=".UserEventListActivity"
+            android:name="com.pmvb.agenda.UserEventListActivity"
             android:theme="@style/AppTheme.NoActionBar"
-            android:parentActivityName=".EventListActivity">
+            android:parentActivityName="com.pmvb.agenda.EventListActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.pmvb.tektonentry.EventListActivity"/>
+                android:value="com.pmvb.agenda.EventListActivity"/>
         </activity>
 
         <receiver
-            android:name=".util.EventNotificationReceiver"
+            android:name="com.pmvb.agenda.util.EventNotificationReceiver"
             android:exported="true"
             android:enabled="true"/>
 

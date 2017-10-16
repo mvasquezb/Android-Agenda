@@ -1,4 +1,4 @@
-package com.pmvb.tektonentry;
+package com.pmvb.agenda;
 
 import android.app.DatePickerDialog;
 
@@ -33,9 +33,9 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.database.FirebaseDatabase;
-import com.pmvb.tektonentry.db.EventListManager;
-import com.pmvb.tektonentry.models.Event;
-import com.pmvb.tektonentry.util.CustomMapFragment;
+import com.pmvb.agenda.db.EventListManager;
+import com.pmvb.agenda.models.Event;
+import com.pmvb.agenda.util.CustomMapFragment;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;

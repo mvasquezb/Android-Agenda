@@ -1,4 +1,4 @@
-package com.pmvb.tektonentry.util;
+package com.pmvb.agenda.util;
 
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -11,11 +11,11 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
 
-import com.pmvb.tektonentry.EventDetailActivity;
+import com.pmvb.agenda.EventDetailActivity;
 
 import java.util.Date;
 
-import static com.pmvb.tektonentry.EventDetailFragment.ARG_EVENT_ID;
+import static com.pmvb.agenda.EventDetailFragment.ARG_EVENT_ID;
 
 /**
  * Created by pmvb on 17-08-06.

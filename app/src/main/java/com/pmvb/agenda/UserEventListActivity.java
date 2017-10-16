@@ -1,15 +1,14 @@
-package com.pmvb.tektonentry;
+package com.pmvb.agenda;
 
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.ActionBar;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
-import android.view.MenuItem;
 
 import com.google.firebase.database.FirebaseDatabase;
-import com.pmvb.tektonentry.db.EventListManager;
-import com.pmvb.tektonentry.db.Manager;
+import com.pmvb.agenda.db.EventListManager;
+import com.pmvb.agenda.db.Manager;
 
 /**
  * Created by pmvb on 17-08-07.

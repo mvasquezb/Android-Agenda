@@ -1,4 +1,4 @@
-package com.pmvb.tektonentry;
+package com.pmvb.agenda;
 
 import android.content.Intent;
 import android.os.Bundle;

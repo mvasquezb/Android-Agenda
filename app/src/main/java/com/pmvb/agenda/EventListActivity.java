@@ -1,4 +1,4 @@
-package com.pmvb.tektonentry;
+package com.pmvb.agenda;
 
 import android.content.Context;
 import android.content.Intent;
@@ -18,9 +18,9 @@ import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
-import com.pmvb.tektonentry.db.EventListManager;
-import com.pmvb.tektonentry.models.Event;
-import com.pmvb.tektonentry.viewholder.EventViewHolder;
+import com.pmvb.agenda.db.EventListManager;
+import com.pmvb.agenda.models.Event;
+import com.pmvb.agenda.viewholder.EventViewHolder;
 
 
 import butterknife.BindView;

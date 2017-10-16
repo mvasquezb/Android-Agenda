@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context="com.pmvb.tektonentry.CreateEventActivity">
+    tools:context="com.pmvb.agenda.CreateEventActivity">
 
     <android.support.design.widget.AppBarLayout
         android:id="@+id/event_edit_bar_layout"

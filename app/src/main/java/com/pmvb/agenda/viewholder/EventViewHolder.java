@@ -1,11 +1,11 @@
-package com.pmvb.tektonentry.viewholder;
+package com.pmvb.agenda.viewholder;
 
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.TextView;
 
-import com.pmvb.tektonentry.R;
-import com.pmvb.tektonentry.models.Event;
+import com.pmvb.agenda.R;
+import com.pmvb.agenda.models.Event;
 
 /**
  * Created by pmvb on 17-08-05.

@@ -1,4 +1,4 @@
-package com.pmvb.tektonentry.db;
+package com.pmvb.agenda.db;
 
 import com.google.firebase.database.DatabaseReference;
 
